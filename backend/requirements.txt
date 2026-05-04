@@ -1,0 +1,48 @@
+# Core Framework
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+pydantic==2.7.1
+pydantic-settings==2.2.1
+
+# Database
+sqlalchemy==2.0.30
+alembic==1.13.1
+
+# Data Processing (pre-built wheels for Windows)
+pandas>=2.0.0
+numpy>=1.24.0
+openpyxl==3.1.2
+python-docx==1.1.0
+PyPDF2==3.0.1
+pdfplumber==0.11.0
+
+# ML - Free & Open Source (pre-built wheels)
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+statsmodels>=0.14.0
+
+# LLM Client (Groq - Free Tier)
+groq==0.9.0
+
+# Agentic AI
+langchain==0.2.1
+langchain-community==0.2.1
+langchain-groq==0.1.4
+
+# Utilities
+python-dotenv==1.0.1
+httpx==0.27.0
+aiofiles==23.2.1
+loguru==0.7.2
+tenacity==8.3.0
+bcrypt==4.1.3
+
+# Optional heavy packages — install separately if needed:
+# pip install transformers torch sentence-transformers
+# pip install chromadb
+# pip install prophet
+# pip install openai-whisper
+# pip install celery redis spacy

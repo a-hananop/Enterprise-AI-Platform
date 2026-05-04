@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.env
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Data - do NOT commit user data
+data/uploads/*
+data/vectors/*
+data/models/*
+data/enterprise_ai.db
+!data/uploads/.gitkeep
+!data/vectors/.gitkeep
+!data/models/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

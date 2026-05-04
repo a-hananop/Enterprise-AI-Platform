@@ -1,0 +1,261 @@
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { useStore } from '../../store'
+import {
+  LayoutDashboard, HardDrive, MessageCircle, TrendingUp,
+  AlignLeft, Cpu, BarChart2, FileSearch, Megaphone,
+  ShieldAlert, FileText, Settings, Bell, Menu, LogOut,
+  ChevronRight, Zap, Activity
+} from 'lucide-react'
+import clsx from 'clsx'
+import { useEffect } from 'react'
+import { analyticsAPI } from '../../services/api'
+
+const NAV = [
+  {
+    group: 'Overview',
+    items: [
+      { path: '/',          label: 'Dashboard',        icon: LayoutDashboard },
+      { path: '/data',      label: 'Data Hub',         icon: HardDrive       },
+    ]
+  },
+  {
+    group: 'AI Features',
+    items: [
+      { path: '/assistant', label: 'AI Assistant',     icon: MessageCircle   },
+      { path: '/predict',   label: 'Predictions',      icon: TrendingUp      },
+      { path: '/text',      label: 'Text Analysis',    icon: AlignLeft       },
+      { path: '/automate',  label: 'Automation',       icon: Cpu             },
+    ]
+  },
+  {
+    group: 'Insights',
+    items: [
+      { path: '/analytics', label: 'Analytics',        icon: BarChart2       },
+      { path: '/documents', label: 'Documents',        icon: FileSearch      },
+      { path: '/marketing', label: 'Marketing AI',     icon: Megaphone       },
+      { path: '/risk',      label: 'Risk Detection',   icon: ShieldAlert     },
+      { path: '/reports',   label: 'Reports',          icon: FileText        },
+    ]
+  },
+  {
+    group: 'Account',
+    items: [
+      { path: '/settings',  label: 'Settings',         icon: Settings        },
+    ]
+  },
+]
+
+export default function AppLayout() {
+  const { user, logout, sidebarOpen, toggleSidebar, unreadAlerts, setUnreadAlerts } = useStore()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    analyticsAPI.dashboard()
+      .then(r => setUnreadAlerts(r.data?.overview?.unread_alerts || 0))
+      .catch(() => {})
+  }, [])
+
+  return (
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'var(--bg-base)' }}>
+
+      {/* ── Sidebar ────────────────────────────────────────────── */}
+      <aside style={{
+        width: sidebarOpen ? 220 : 60,
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        borderRight: '1px solid var(--glass-border)',
+        background: 'rgba(12,14,26,0.95)',
+        backdropFilter: 'blur(20px)',
+        transition: 'width 0.25s ease',
+        overflow: 'hidden',
+      }}>
+
+        {/* Logo */}
+        <div style={{
+          height: 60,
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 14px',
+          borderBottom: '1px solid var(--glass-border)',
+          gap: 10,
+          flexShrink: 0,
+        }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 10,
+            background: 'linear-gradient(135deg, #4f8bff, #7c3aed)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+            boxShadow: '0 4px 14px rgba(79,139,255,0.4)',
+          }}>
+            <Zap size={15} color="#fff" />
+          </div>
+          {sidebarOpen && (
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                Enterprise AI
+              </div>
+              <div style={{ fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                Decision Intelligence
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Nav */}
+        <nav style={{ flex: 1, overflowY: 'auto', padding: '10px 8px' }}>
+          {NAV.map(({ group, items }) => (
+            <div key={group} style={{ marginBottom: 4 }}>
+              {sidebarOpen && (
+                <div style={{
+                  fontSize: 10, fontWeight: 600, color: 'var(--text-dim)',
+                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                  padding: '14px 8px 6px',
+                }}>
+                  {group}
+                </div>
+              )}
+              {!sidebarOpen && group !== 'Overview' && (
+                <div style={{ borderTop: '1px solid var(--glass-border)', margin: '8px 4px' }} />
+              )}
+              {items.map(({ path, label, icon: Icon }) => {
+                const active = location.pathname === path
+                return (
+                  <button
+                    key={path}
+                    onClick={() => navigate(path)}
+                    title={!sidebarOpen ? label : undefined}
+                    className={clsx('nav-item', active && 'active')}
+                    style={{ width: '100%', justifyContent: sidebarOpen ? 'flex-start' : 'center' }}
+                  >
+                    <Icon size={16} className="nav-icon" />
+                    {sidebarOpen && (
+                      <>
+                        <span style={{ flex: 1, textAlign: 'left' }}>{label}</span>
+                        {active && <ChevronRight size={13} style={{ opacity: 0.4 }} />}
+                      </>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+        </nav>
+
+        {/* User */}
+        <div style={{ padding: '8px', borderTop: '1px solid var(--glass-border)', flexShrink: 0 }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 9,
+            padding: '8px 10px', borderRadius: 10,
+            cursor: 'pointer', transition: 'background 0.15s',
+            justifyContent: sidebarOpen ? 'flex-start' : 'center',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--glass-hover)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+          >
+            <div style={{
+              width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+              background: 'linear-gradient(135deg, #4f8bff44, #7c3aed44)',
+              border: '1px solid rgba(79,139,255,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 12, fontWeight: 700, color: 'var(--accent)',
+            }}>
+              {user?.username?.[0]?.toUpperCase()}
+            </div>
+            {sidebarOpen && (
+              <>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)', truncate: true, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user?.full_name || user?.username}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'capitalize' }}>
+                    {user?.role}
+                  </div>
+                </div>
+                <button
+                  onClick={() => { logout(); navigate('/login') }}
+                  title="Sign out"
+                  style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, display: 'flex', transition: 'color 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                >
+                  <LogOut size={14} />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* ── Main ────────────────────────────────────────────────── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+        {/* Top bar */}
+        <header style={{
+          height: 60, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 24px',
+          borderBottom: '1px solid var(--glass-border)',
+          background: 'rgba(12,14,26,0.7)',
+          backdropFilter: 'blur(20px)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button className="btn-ghost" onClick={toggleSidebar} style={{ padding: '7px 9px' }}>
+              <Menu size={16} />
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success)', display: 'inline-block', animation: 'pulse-dot 2s infinite' }} />
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>All systems operational</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button
+              className="btn-ghost"
+              onClick={() => navigate('/analytics')}
+              style={{ padding: '7px 10px', position: 'relative' }}
+            >
+              <Bell size={16} />
+              {unreadAlerts > 0 && (
+                <span style={{
+                  position: 'absolute', top: 4, right: 4,
+                  width: 16, height: 16, borderRadius: '50%',
+                  background: 'var(--danger)', color: '#fff',
+                  fontSize: 9, fontWeight: 700,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {unreadAlerts}
+                </span>
+              )}
+            </button>
+
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '6px 12px', borderRadius: 9,
+              background: 'var(--glass-bg)', border: '1px solid var(--glass-border)',
+            }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: 6,
+                background: 'linear-gradient(135deg, #4f8bff33, #7c3aed33)',
+                border: '1px solid rgba(79,139,255,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700, color: 'var(--accent)',
+              }}>
+                {user?.username?.[0]?.toUpperCase()}
+              </div>
+              <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text-primary)' }}>
+                {user?.username}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {/* Page */}
+        <main key={location.pathname} className="fade-in" style={{ flex: 1, overflowY: 'auto' }}>
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  )
+}
