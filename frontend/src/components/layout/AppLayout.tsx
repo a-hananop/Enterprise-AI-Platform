@@ -9,6 +9,7 @@ import {
 import clsx from 'clsx'
 import { useEffect } from 'react'
 import { analyticsAPI } from '../../services/api'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 
 const NAV = [
   {
@@ -57,9 +58,9 @@ export default function AppLayout() {
   }, [])
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'var(--bg-base)' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-base)' }}>
 
-      {/* ── Sidebar ────────────────────────────────────────────── */}
+      {/* ── Sidebar ── */}
       <aside style={{
         width: sidebarOpen ? 220 : 60,
         flexShrink: 0,
@@ -74,74 +75,91 @@ export default function AppLayout() {
 
         {/* Logo */}
         <div style={{
-          height: 60,
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 14px',
-          borderBottom: '1px solid var(--glass-border)',
-          gap: 10,
-          flexShrink: 0,
+          height: 60, display: 'flex', alignItems: 'center',
+          padding: '0 14px', borderBottom: '1px solid var(--glass-border)',
+          gap: 10, flexShrink: 0,
         }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 10,
-            background: 'linear-gradient(135deg, #4f8bff, #7c3aed)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-            boxShadow: '0 4px 14px rgba(79,139,255,0.4)',
-          }}>
+          <motion.div
+            style={{
+              width: 32, height: 32, borderRadius: 10,
+              background: 'linear-gradient(135deg, #4f8bff, #7c3aed)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0, boxShadow: '0 4px 14px rgba(79,139,255,0.4)',
+            }}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: 'spring', stiffness: 400 }}
+          >
             <Zap size={15} color="#fff" />
-          </div>
+          </motion.div>
           {sidebarOpen && (
-            <div style={{ minWidth: 0 }}>
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0 }}
+              style={{ minWidth: 0 }}
+            >
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
                 Enterprise AI
               </div>
               <div style={{ fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                 Decision Intelligence
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, overflowY: 'auto', padding: '10px 8px' }}>
-          {NAV.map(({ group, items }) => (
-            <div key={group} style={{ marginBottom: 4 }}>
-              {sidebarOpen && (
-                <div style={{
-                  fontSize: 10, fontWeight: 600, color: 'var(--text-dim)',
-                  textTransform: 'uppercase', letterSpacing: '0.08em',
-                  padding: '14px 8px 6px',
-                }}>
-                  {group}
-                </div>
-              )}
-              {!sidebarOpen && group !== 'Overview' && (
-                <div style={{ borderTop: '1px solid var(--glass-border)', margin: '8px 4px' }} />
-              )}
-              {items.map(({ path, label, icon: Icon }) => {
-                const active = location.pathname === path
-                return (
-                  <button
-                    key={path}
-                    onClick={() => navigate(path)}
-                    title={!sidebarOpen ? label : undefined}
-                    className={clsx('nav-item', active && 'active')}
-                    style={{ width: '100%', justifyContent: sidebarOpen ? 'flex-start' : 'center' }}
-                  >
-                    <Icon size={16} className="nav-icon" />
-                    {sidebarOpen && (
-                      <>
-                        <span style={{ flex: 1, textAlign: 'left' }}>{label}</span>
-                        {active && <ChevronRight size={13} style={{ opacity: 0.4 }} />}
-                      </>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          ))}
-        </nav>
+        <LayoutGroup>
+          <nav style={{ flex: 1, overflowY: 'auto', padding: '10px 8px' }}>
+            {NAV.map(({ group, items }) => (
+              <div key={group} style={{ marginBottom: 4 }}>
+                {sidebarOpen && (
+                  <div style={{
+                    fontSize: 10, fontWeight: 600, color: 'var(--text-dim)',
+                    textTransform: 'uppercase', letterSpacing: '0.08em',
+                    padding: '14px 8px 6px',
+                  }}>
+                    {group}
+                  </div>
+                )}
+                {!sidebarOpen && group !== 'Overview' && (
+                  <div style={{ borderTop: '1px solid var(--glass-border)', margin: '8px 4px' }} />
+                )}
+                {items.map(({ path, label, icon: Icon }) => {
+                  const active = location.pathname === path
+                  return (
+                    <button
+                      key={path}
+                      onClick={() => navigate(path)}
+                      title={!sidebarOpen ? label : undefined}
+                      className={clsx('nav-item', active && 'active')}
+                      style={{ width: '100%', justifyContent: sidebarOpen ? 'flex-start' : 'center', position: 'relative' }}
+                    >
+                      {active && (
+                        <motion.span
+                          layoutId="active-nav-pill"
+                          style={{
+                            position: 'absolute', left: 0, top: 3, bottom: 3,
+                            width: 3, borderRadius: '0 3px 3px 0',
+                            background: 'var(--accent)',
+                          }}
+                          transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                        />
+                      )}
+                      <Icon size={16} className="nav-icon" />
+                      {sidebarOpen && (
+                        <>
+                          <span style={{ flex: 1, textAlign: 'left' }}>{label}</span>
+                          {active && <ChevronRight size={13} style={{ opacity: 0.4 }} />}
+                        </>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            ))}
+          </nav>
+        </LayoutGroup>
 
         {/* User */}
         <div style={{ padding: '8px', borderTop: '1px solid var(--glass-border)', flexShrink: 0 }}>
@@ -151,8 +169,8 @@ export default function AppLayout() {
             cursor: 'pointer', transition: 'background 0.15s',
             justifyContent: sidebarOpen ? 'flex-start' : 'center',
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--glass-hover)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--glass-hover)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
           >
             <div style={{
               width: 30, height: 30, borderRadius: 8, flexShrink: 0,
@@ -166,7 +184,7 @@ export default function AppLayout() {
             {sidebarOpen && (
               <>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)', truncate: true, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {user?.full_name || user?.username}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'capitalize' }}>
@@ -188,7 +206,7 @@ export default function AppLayout() {
         </div>
       </aside>
 
-      {/* ── Main ────────────────────────────────────────────────── */}
+      {/* ── Main ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Top bar */}
@@ -217,17 +235,24 @@ export default function AppLayout() {
               style={{ padding: '7px 10px', position: 'relative' }}
             >
               <Bell size={16} />
-              {unreadAlerts > 0 && (
-                <span style={{
-                  position: 'absolute', top: 4, right: 4,
-                  width: 16, height: 16, borderRadius: '50%',
-                  background: 'var(--danger)', color: '#fff',
-                  fontSize: 9, fontWeight: 700,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  {unreadAlerts}
-                </span>
-              )}
+              <AnimatePresence>
+                {unreadAlerts > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    style={{
+                      position: 'absolute', top: 4, right: 4,
+                      width: 16, height: 16, borderRadius: '50%',
+                      background: 'var(--danger)', color: '#fff',
+                      fontSize: 9, fontWeight: 700,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                  >
+                    {unreadAlerts}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </button>
 
             <div style={{
@@ -251,10 +276,19 @@ export default function AppLayout() {
           </div>
         </header>
 
-        {/* Page */}
-        <main key={location.pathname} className="fade-in" style={{ flex: 1, overflowY: 'auto' }}>
-          <Outlet />
-        </main>
+        {/* Page — animated transitions */}
+        <AnimatePresence mode="wait">
+          <motion.main
+            key={location.pathname}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            style={{ flex: 1, overflowY: 'auto' }}
+          >
+            <Outlet />
+          </motion.main>
+        </AnimatePresence>
       </div>
     </div>
   )

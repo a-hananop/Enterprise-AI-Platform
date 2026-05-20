@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Send, Plus, Trash2, MessageCircle, Database, Bot, User2, ChevronDown, Loader2 } from 'lucide-react'
 import clsx from 'clsx'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function AIAssistant() {
   const [sessions, setSessions] = useState<any[]>([])
@@ -48,25 +49,67 @@ export default function AIAssistant() {
     if (!input.trim() || loading) return
     const text = input; setInput(''); setLoading(true)
     const tmpId = 'tmp-' + Date.now()
-    setMessages(prev => [...prev, { id: tmpId, role: 'user', content: text }])
+    const assistantId = 'assistant-' + Date.now()
+    
+    setMessages(prev => [...prev, 
+      { id: tmpId, role: 'user', content: text },
+      { id: assistantId, role: 'assistant', content: '', sources: [] }
+    ])
 
     try {
-      const r = await chatAPI.sendMessage({ message: text, session_id: activeSession?.id, data_source_ids: selectedSources, use_rag: useRag })
-      if (!activeSession) {
-        const sessions = await chatAPI.listSessions()
-        setSessions(sessions.data)
-        setActiveSession({ id: r.data.session_id, title: text.slice(0, 50) })
+      const response = await chatAPI.streamMessage({ 
+        message: text, 
+        session_id: activeSession?.id, 
+        data_source_ids: selectedSources, 
+        use_rag: useRag 
+      })
+
+      if (!response.body) throw new Error('No response body')
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let fullContent = ''
+
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+        
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n')
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6))
+              if (data.type === 'token') {
+                fullContent += data.content
+                setMessages(prev => prev.map(m => 
+                  m.id === assistantId ? { ...m, content: fullContent } : m
+                ))
+              } else if (data.type === 'sources') {
+                setMessages(prev => prev.map(m => 
+                  m.id === assistantId ? { ...m, sources: data.content } : m
+                ))
+              } else if (data.type === 'done') {
+                if (!activeSession) {
+                  chatAPI.listSessions().then(r => {
+                    setSessions(r.data)
+                    const newSess = r.data.find((s: any) => s.id === data.session_id)
+                    if (newSess) setActiveSession(newSess)
+                  })
+                }
+              }
+            } catch (e) {
+              console.error('Error parsing stream chunk', e)
+            }
+          }
+        }
       }
-      setMessages(prev => [
-        ...prev.filter(m => m.id !== tmpId),
-        { id: Date.now() + 'u', role: 'user', content: text },
-        { id: Date.now() + 'a', role: 'assistant', content: r.data.message, sources: r.data.sources },
-      ])
-      chatAPI.listSessions().then(r => setSessions(r.data)).catch(() => {})
     } catch (e: any) {
-      setMessages(prev => prev.filter(m => m.id !== tmpId))
-      toast.error(e.response?.data?.detail || 'Message failed')
-    } finally { setLoading(false) }
+      toast.error('Message failed')
+      setMessages(prev => prev.filter(m => m.id !== tmpId && m.id !== assistantId))
+    } finally { 
+      setLoading(false) 
+    }
   }
 
   const delSession = async (id: string, e: React.MouseEvent) => {
@@ -202,60 +245,70 @@ export default function AIAssistant() {
             </div>
           ) : (
             <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {messages.map((m, i) => (
-                <div key={m.id || i} className="fade-in"
-                  style={{ display: 'flex', gap: 12, flexDirection: m.role === 'user' ? 'row-reverse' : 'row' }}>
+              <AnimatePresence initial={false}>
+                {messages.map((m, i) => (
+                  <motion.div
+                    key={m.id || i}
+                    initial={{ opacity: 0, scale: 0.92, x: m.role === 'user' ? 20 : -20 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                    style={{ display: 'flex', gap: 12, flexDirection: m.role === 'user' ? 'row-reverse' : 'row' }}
+                  >
+                    {/* Avatar */}
+                    <div style={{
+                      width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+                      background: m.role === 'user' ? 'linear-gradient(135deg,#4f8bff,#7c3aed)' : 'var(--accent-soft)',
+                      border: m.role === 'assistant' ? '1px solid rgba(79,139,255,0.2)' : 'none',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
+                    }}>
+                      {m.role === 'user' ? <User2 size={14} color="#fff" /> : <Bot size={14} color="var(--accent)" />}
+                    </div>
 
-                  {/* Avatar */}
-                  <div style={{
-                    width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-                    background: m.role === 'user' ? 'linear-gradient(135deg,#4f8bff,#7c3aed)' : 'var(--accent-soft)',
-                    border: m.role === 'assistant' ? '1px solid rgba(79,139,255,0.2)' : 'none',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
-                  }}>
-                    {m.role === 'user'
-                      ? <User2 size={14} color="#fff" />
-                      : <Bot size={14} color="var(--accent)" />
-                    }
-                  </div>
+                    {/* Bubble */}
+                    <div style={{
+                      maxWidth: '75%',
+                      background: m.role === 'user' ? 'var(--accent)' : 'var(--glass-bg)',
+                      border: m.role === 'assistant' ? '1px solid var(--glass-border)' : 'none',
+                      borderRadius: m.role === 'user' ? '14px 14px 4px 14px' : '4px 14px 14px 14px',
+                      padding: '12px 16px',
+                    }}>
+                      {m.role === 'user'
+                        ? <p style={{ fontSize: 13.5, color: '#fff', margin: 0, lineHeight: 1.55 }}>{m.content}</p>
+                        : <div className="md"><ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown></div>
+                      }
+                      {m.sources?.length > 0 && (
+                        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--glass-border)' }}>
+                          <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Sources</p>
+                          {m.sources.slice(0, 3).map((s: any, j: number) => (
+                            <div key={j} style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                              <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
+                              {s.source} — relevance {Math.round(s.score * 100)}%
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
 
-                  {/* Bubble */}
-                  <div style={{
-                    maxWidth: '75%',
-                    background: m.role === 'user' ? 'var(--accent)' : 'var(--glass-bg)',
-                    border: m.role === 'assistant' ? '1px solid var(--glass-border)' : 'none',
-                    borderRadius: m.role === 'user' ? '14px 14px 4px 14px' : '4px 14px 14px 14px',
-                    padding: '12px 16px',
-                  }}>
-                    {m.role === 'user'
-                      ? <p style={{ fontSize: 13.5, color: '#fff', margin: 0, lineHeight: 1.55 }}>{m.content}</p>
-                      : <div className="md"><ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown></div>
-                    }
-                    {m.sources?.length > 0 && (
-                      <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--glass-border)' }}>
-                        <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Sources</p>
-                        {m.sources.slice(0, 3).map((s: any, j: number) => (
-                          <div key={j} style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                            <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
-                            {s.source} — relevance {Math.round(s.score * 100)}%
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {loading && (
-                <div className="fade-in" style={{ display: 'flex', gap: 12 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--accent-soft)', border: '1px solid rgba(79,139,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Bot size={14} color="var(--accent)" />
-                  </div>
-                  <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '4px 14px 14px 14px', padding: '14px 18px', display: 'flex', gap: 5, alignItems: 'center' }}>
-                    <span className="dot-1" /><span className="dot-2" /><span className="dot-3" />
-                  </div>
-                </div>
-              )}
+              {/* Wave typing indicator */}
+              <AnimatePresence>
+                {loading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
+                    style={{ display: 'flex', gap: 12 }}
+                  >
+                    <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--accent-soft)', border: '1px solid rgba(79,139,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Bot size={14} color="var(--accent)" />
+                    </div>
+                    <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '4px 14px 14px 14px', padding: '14px 18px', display: 'flex', gap: 5, alignItems: 'center' }}>
+                      <span className="dot-wave-1" /><span className="dot-wave-2" /><span className="dot-wave-3" />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <div ref={endRef} />
             </div>
           )}

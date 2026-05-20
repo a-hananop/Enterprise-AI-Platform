@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { FileText, Send, Loader2, Tag, User, Calendar, Hash } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function TextAnalysis() {
   const [text, setText] = useState('')
@@ -133,50 +134,59 @@ export default function TextAnalysis() {
           ) : (
             <>
               {result.results?.sentiment || result.sentiment ? (
-                <div className="card p-4">
+                <motion.div className="card p-4" initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.35 }}>
                   <h3 className="text-sm font-semibold text-[var(--text-secondary)] mb-3">Sentiment</h3>
                   {(() => {
                     const s = result.results?.sentiment || result.sentiment
+                    const color = s.label === 'positive' ? '#22d3a5' : s.label === 'negative' ? '#ff5c7a' : '#f5a623'
                     return (
                       <div className="flex items-center gap-3">
-                        <span className={`text-2xl font-bold capitalize ${sentimentColor(s.label)}`}>{s.label}</span>
-                        <div className="flex-1 bg-[var(--bg-secondary)] rounded-full h-2">
-                          <div className={`h-2 rounded-full ${s.label === 'positive' ? 'bg-green-400' : s.label === 'negative' ? 'bg-red-400' : 'bg-yellow-400'}`}
-                            style={{ width: `${(s.confidence * 100).toFixed(0)}%` }} />
+                        <motion.span initial={{ scale:0.7, opacity:0 }} animate={{ scale:1, opacity:1 }} transition={{ type:'spring', stiffness:400 }}
+                          className={`text-2xl font-bold capitalize ${sentimentColor(s.label)}`}>{s.label}</motion.span>
+                        <div className="flex-1 bg-[var(--bg-secondary)] rounded-full h-2" style={{ overflow:'hidden' }}>
+                          <motion.div
+                            initial={{ width:0 }}
+                            animate={{ width:`${(s.confidence * 100).toFixed(0)}%` }}
+                            transition={{ duration:0.9, ease:[0.4,0,0.2,1] }}
+                            style={{ height:'100%', borderRadius:999, background: color }} />
                         </div>
                         <span className="text-sm text-[var(--text-secondary)]">{(s.confidence * 100).toFixed(0)}%</span>
                       </div>
                     )
                   })()}
-                </div>
+                </motion.div>
               ) : null}
 
               {result.results?.entities?.entities?.length > 0 && (
-                <div className="card p-4">
+                <motion.div className="card p-4" initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.1, duration:0.35 }}>
                   <h3 className="text-sm font-semibold text-[var(--text-secondary)] mb-3">Named Entities</h3>
                   <div className="flex flex-wrap gap-2">
                     {result.results.entities.entities.slice(0, 20).map((e: any, i: number) => (
-                      <span key={i} className="badge-blue flex items-center gap-1">
+                      <motion.span key={i} className="badge-blue flex items-center gap-1"
+                        initial={{ scale:0, opacity:0 }} animate={{ scale:1, opacity:1 }}
+                        transition={{ delay: i * 0.04, type:'spring', stiffness:400, damping:20 }}>
                         {e.label === 'PER' ? <User size={10} /> : e.label === 'DATE' ? <Calendar size={10} /> : <Tag size={10} />}
                         {e.text} <span className="opacity-60">{e.label}</span>
-                      </span>
+                      </motion.span>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               )}
 
               {result.results?.keywords?.keywords?.length > 0 && (
-                <div className="card p-4">
+                <motion.div className="card p-4" initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.15, duration:0.35 }}>
                   <h3 className="text-sm font-semibold text-[var(--text-secondary)] mb-3">Keywords</h3>
                   <div className="flex flex-wrap gap-2">
                     {result.results.keywords.keywords.map((k: any, i: number) => (
-                      <span key={i} className="badge-purple flex items-center gap-1">
+                      <motion.span key={i} className="badge-purple flex items-center gap-1"
+                        initial={{ scale:0, opacity:0 }} animate={{ scale:1, opacity:1 }}
+                        transition={{ delay: i * 0.035, type:'spring', stiffness:400, damping:20 }}>
                         <Hash size={10} />{k.word}
                         <span className="opacity-60">{k.score.toFixed(1)}</span>
-                      </span>
+                      </motion.span>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               )}
 
               {result.results?.summary?.summary && (

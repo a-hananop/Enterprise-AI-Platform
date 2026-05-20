@@ -64,6 +64,17 @@ export const chatAPI = {
   getMessages: (sessionId: string) => api.get(`/chat/sessions/${sessionId}/messages`),
   deleteSession: (sessionId: string) => api.delete(`/chat/sessions/${sessionId}`),
   sendMessage: (data: any) => api.post('/chat/message', data),
+  streamMessage: (data: any) => {
+    const token = localStorage.getItem('token')
+    return fetch('/api/chat/stream-message', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    })
+  },
   analyzeDataset: (sourceId: string, question: string) =>
     api.post(`/chat/analyze-data/${sourceId}`, null, { params: { question } }),
 }

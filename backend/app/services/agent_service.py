@@ -198,17 +198,30 @@ Order by priority. Maximum 4 sub-tasks."""
         if not agent_tasks:
             agent_tasks = [{"agent": "data", "task": goal, "priority": 1}]
 
-        # Execute each sub-agent
-        agent_results = []
-        for i, task in enumerate(agent_tasks[:4]):
+        # Execute sub-agents in PARALLEL
+        import asyncio
+        tasks = []
+        for task in agent_tasks[:4]:
             agent_type = task.get("agent", "data")
             agent_task = task.get("task", goal)
-
-            result = await self.run_single_agent(
+            tasks.append(self.run_single_agent(
                 agent_type=agent_type,
                 goal=agent_task,
                 data_source_ids=data_source_ids,
-            )
+            ))
+
+        # Wait for all agents to finish concurrently
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        agent_results = []
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                print(f"Agent execution error: {result}")
+                continue
+            
+            task = agent_tasks[i]
+            agent_type = task.get("agent", "data")
+            agent_task = task.get("task", goal)
 
             agent_results.append({
                 "agent": agent_type,
@@ -218,7 +231,7 @@ Order by priority. Maximum 4 sub-tasks."""
             })
 
             all_steps.append({
-                "step": i + 2,
+                "step": len(all_steps) + 1,
                 "agent": agent_type,
                 "action": f"Agent Execution: {agent_task[:100]}",
                 "result": result.get("summary", result["output"][:500]),

@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.1-8b-instant"
     GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-1.5-flash" # Options: gemini-1.5-flash, gemini-1.5-pro
     HF_TOKEN: str = ""
 
     # Vector DB

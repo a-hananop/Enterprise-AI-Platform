@@ -473,3 +473,101 @@ input[type="checkbox"] {
   background: rgba(255,255,255,0.06) !important;
 }
 input[type="checkbox"]:focus { box-shadow: none !important; }
+
+/* ─────────────────────────────────────────────────
+   NEW: Wave animation for chat typing dots
+───────────────────────────────────────────────── */
+@keyframes wave {
+  0%, 60%, 100% { transform: translateY(0); }
+  30%            { transform: translateY(-6px); }
+}
+
+.dot-wave-1, .dot-wave-2, .dot-wave-3 {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: wave 1.2s ease-in-out infinite;
+}
+.dot-wave-2 { animation-delay: 0.15s; }
+.dot-wave-3 { animation-delay: 0.30s; }
+
+/* ─────────────────────────────────────────────────
+   NEW: Critical alert pulse glow
+───────────────────────────────────────────────── */
+@keyframes pulse-critical {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,71,87,0.5); }
+  50%       { box-shadow: 0 0 0 8px rgba(255,71,87,0); }
+}
+.pulse-critical { animation: pulse-critical 1.8s ease-in-out infinite; }
+
+/* ─────────────────────────────────────────────────
+   NEW: Sentiment bar animated fill
+───────────────────────────────────────────────── */
+@keyframes fillBar {
+  from { width: 0%; }
+  to   { width: var(--target-width, 100%); }
+}
+.bar-animate { animation: fillBar 0.9s cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+/* ─────────────────────────────────────────────────
+   NEW: Risk score card pulse for high-risk
+───────────────────────────────────────────────── */
+@keyframes pulse-red {
+  0%, 100% { border-color: rgba(255,92,122,0.2); }
+  50%       { border-color: rgba(255,92,122,0.6); box-shadow: 0 0 16px rgba(255,92,122,0.15); }
+}
+.pulse-high-risk { animation: pulse-red 2s ease-in-out infinite; }
+
+/* ─────────────────────────────────────────────────
+   NEW: Smooth pulse-dot for system status
+───────────────────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ─────────────────────────────────────────────────
+   NEW: 3D-ish card hover glow
+───────────────────────────────────────────────── */
+.glow-on-hover {
+  transition: all 0.25s ease;
+}
+.glow-on-hover:hover {
+  box-shadow: 0 0 24px rgba(79,139,255,0.18), 0 8px 32px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+  border-color: rgba(79,139,255,0.25) !important;
+}
+
+/* ─────────────────────────────────────────────────
+   NEW: Markdown content (alias for .md)
+───────────────────────────────────────────────── */
+.markdown-content { @extend .md; font-size: 13.5px; line-height: 1.7; color: var(--text-secondary); }
+.markdown-content h1,.markdown-content h2,.markdown-content h3 { color: var(--text-primary); font-weight: 600; margin: 20px 0 8px; }
+.markdown-content h1 { font-size: 18px; } .markdown-content h2 { font-size: 15px; } .markdown-content h3 { font-size: 13.5px; }
+.markdown-content p { margin: 0 0 12px; }
+.markdown-content ul,.markdown-content ol { padding-left: 20px; margin: 0 0 12px; }
+.markdown-content li { margin-bottom: 4px; }
+.markdown-content code { background: rgba(255,255,255,0.07); color: #7badff; padding: 1px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.markdown-content pre { background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 10px; padding: 16px; overflow-x: auto; margin: 12px 0; }
+.markdown-content pre code { background: none; color: var(--text-secondary); }
+.markdown-content blockquote { border-left: 3px solid var(--accent); padding-left: 14px; margin: 12px 0; color: var(--text-muted); font-style: italic; }
+.markdown-content table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12.5px; }
+.markdown-content th { background: rgba(255,255,255,0.04); padding: 8px 12px; text-align: left; color: var(--text-secondary); border: 1px solid var(--glass-border); font-weight: 600; }
+.markdown-content td { padding: 8px 12px; border: 1px solid rgba(255,255,255,0.06); }
+.markdown-content a { color: var(--accent); text-decoration: none; }
+.markdown-content strong { color: var(--text-primary); font-weight: 600; }
+
+/* ─────────────────────────────────────────────────
+   NEW: Loading pulse for skeleton cards
+───────────────────────────────────────────────── */
+.loading-pulse {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+

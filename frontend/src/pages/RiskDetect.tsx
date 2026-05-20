@@ -6,6 +6,7 @@ import { Shield, AlertTriangle, Loader2, Search, FileBarChart } from 'lucide-rea
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import clsx from 'clsx'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function RiskDetect() {
   const [activeTab, setActiveTab] = useState<'anomaly' | 'scoring' | 'report'>('anomaly')
@@ -174,43 +175,43 @@ export default function RiskDetect() {
               </div>
             </div>
           ) : result.type === 'anomaly' ? (
-            <div className="space-y-4 animate-fade-in">
+            <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: 'Total Records', value: result.data.total_records?.toLocaleString(), color: '' },
-                  { label: 'Anomalies Found', value: result.data.anomalies_found, color: result.data.anomalies_found > 0 ? 'text-red-400' : 'text-green-400' },
-                  { label: 'Anomaly Rate', value: `${result.data.anomaly_rate}%`, color: result.data.anomaly_rate > 5 ? 'text-yellow-400' : 'text-green-400' },
-                  { label: 'Columns Analyzed', value: result.data.columns_analyzed?.length, color: '' },
-                ].map(({ label, value, color }) => (
-                  <div key={label} className="stat">
+                  { label: 'Total Records',     value: result.data.total_records?.toLocaleString(), color: '' },
+                  { label: 'Anomalies Found',   value: result.data.anomalies_found, color: result.data.anomalies_found > 0 ? 'text-red-400' : 'text-green-400' },
+                  { label: 'Anomaly Rate',      value: `${result.data.anomaly_rate}%`, color: result.data.anomaly_rate > 5 ? 'text-yellow-400' : 'text-green-400' },
+                  { label: 'Columns Analyzed',  value: result.data.columns_analyzed?.length, color: '' },
+                ].map(({ label, value, color }, i) => (
+                  <motion.div key={label} className="stat" initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay: i * 0.08 }}>
                     <span className="text-xs text-[var(--text-muted)]">{label}</span>
                     <span className={`text-xl font-bold ${color || 'text-[var(--text-primary)]'}`}>{value}</span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
               {result.data.ai_explanation && (
-                <div className="card p-4">
+                <motion.div className="card p-4" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.35 }}>
                   <p className="text-xs font-semibold text-[var(--text-muted)] mb-2">🤖 AI Explanation</p>
                   <p className="text-sm text-[var(--text-secondary)]">{result.data.ai_explanation}</p>
-                </div>
+                </motion.div>
               )}
             </div>
           ) : result.type === 'scoring' ? (
-            <div className="space-y-4 animate-fade-in">
+            <div className="space-y-4">
               <div className="grid grid-cols-3 gap-3">
-                <div className="stat border-red-500/20">
+                <motion.div className="stat border-red-500/20 pulse-high-risk" initial={{ opacity:0, scale:0.9 }} animate={{ opacity:1, scale:1 }} transition={{ delay:0 }}>
                   <span className="text-xs text-[var(--text-muted)]">High Risk</span>
                   <span className="text-xl font-bold text-red-400">{result.data.high_risk_count}</span>
                   <span className="text-xs text-red-400">{result.data.high_risk_percentage}%</span>
-                </div>
-                <div className="stat border-yellow-500/20">
+                </motion.div>
+                <motion.div className="stat border-yellow-500/20" initial={{ opacity:0, scale:0.9 }} animate={{ opacity:1, scale:1 }} transition={{ delay:0.08 }}>
                   <span className="text-xs text-[var(--text-muted)]">Medium Risk</span>
                   <span className="text-xl font-bold text-yellow-400">{result.data.medium_risk_count}</span>
-                </div>
-                <div className="stat border-green-500/20">
+                </motion.div>
+                <motion.div className="stat border-green-500/20" initial={{ opacity:0, scale:0.9 }} animate={{ opacity:1, scale:1 }} transition={{ delay:0.16 }}>
                   <span className="text-xs text-[var(--text-muted)]">Low Risk</span>
                   <span className="text-xl font-bold text-green-400">{result.data.low_risk_count}</span>
-                </div>
+                </motion.div>
               </div>
               {result.data.top_high_risk_records?.length > 0 && (
                 <div className="card overflow-hidden">

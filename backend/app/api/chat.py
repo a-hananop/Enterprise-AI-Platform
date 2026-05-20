@@ -15,6 +15,17 @@ rag_service = RAGService()
 llm_service = LLMService()
 
 
+@router.get("/status")
+def llm_status():
+    """Check whether an LLM provider is configured and ready."""
+    llm_service._ensure_clients()
+    return {
+        "configured": llm_service.is_configured,
+        "groq": llm_service.groq_client is not None,
+        "gemini": llm_service.gemini_client is not None,
+    }
+
+
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
@@ -153,6 +164,76 @@ async def send_message(
         "sources": sources,
         "tokens_used": tokens_used,
     }
+
+
+@router.post("/stream-message")
+async def stream_message(
+    req: ChatRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Stream message response from AI"""
+    from fastapi.responses import StreamingResponse
+    
+    # Get or create session
+    if req.session_id:
+        session = _get_session(req.session_id, db, current_user)
+    else:
+        session = ChatSession(
+            title=req.message[:50],
+            user_id=current_user.id,
+            data_source_ids=req.data_source_ids
+        )
+        db.add(session)
+        db.commit()
+        db.refresh(session)
+
+    # Build conversation history
+    history = [{"role": m.role, "content": m.content} for m in session.messages[-10:]]
+
+    context_text = ""
+    sources = []
+
+    # RAG retrieval
+    if req.use_rag and (req.data_source_ids or session.data_source_ids):
+        ds_ids = req.data_source_ids or session.data_source_ids or []
+        retrieval = await rag_service.retrieve(req.message, ds_ids, top_k=5)
+        if retrieval["chunks"]:
+            context_text = "\n\n".join(
+                f"[Source: {c['source']}]\n{c['text']}" for c in retrieval["chunks"]
+            )
+            sources = [{"source": c["source"], "score": c["score"]} for c in retrieval["chunks"]]
+
+    # Build prompt
+    system_prompt = _build_system_prompt(context_text)
+
+    async def event_generator():
+        full_response = ""
+        # First send sources if any
+        if sources:
+            yield f"data: {json.dumps({'type': 'sources', 'content': sources})}\n\n"
+        
+        # Then stream tokens
+        async for token in llm_service.stream_chat(
+            system_prompt=system_prompt,
+            messages=history + [{"role": "user", "content": req.message}],
+            temperature=req.temperature,
+        ):
+            full_response += token
+            yield f"data: {json.dumps({'type': 'token', 'content': token})}\n\n"
+        
+        # Finally, save to DB and send session info
+        user_msg = ChatMessage(session_id=session.id, role="user", content=req.message)
+        ai_msg = ChatMessage(
+            session_id=session.id, role="assistant",
+            content=full_response, sources=sources
+        )
+        db.add_all([user_msg, ai_msg])
+        db.commit()
+        
+        yield f"data: {json.dumps({'type': 'done', 'session_id': session.id})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 # ── Quick Analysis ─────────────────────────────────────────────

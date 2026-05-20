@@ -12,6 +12,7 @@ import {
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import clsx from 'clsx'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Analytics() {
   const [activeTab, setActiveTab] = useState<'kpis' | 'trends' | 'reports' | 'alerts'>('kpis')
@@ -163,31 +164,68 @@ export default function Analytics() {
               <p className="text-sm text-[var(--text-muted)] mt-1">Upload a dataset and extract KPIs automatically</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {kpis.map(kpi => (
-                <div key={kpi.id} className="stat card-hover">
-                  <div className="flex items-center justify-between">
-                    <span className="stat-label truncate">{kpi.name}</span>
-                    {kpi.trend === 'up' ? <TrendingUp size={13} className="text-green-400 flex-shrink-0" /> :
-                      kpi.trend === 'down' ? <TrendingDown size={13} className="text-red-400 flex-shrink-0" /> : null}
-                  </div>
-                  <div className="stat-value truncate">
-                    {kpi.unit === '$' && '$'}{typeof kpi.value === 'number' ? kpi.value.toLocaleString() : kpi.value}{kpi.unit !== '$' ? ' ' + (kpi.unit || '') : ''}
-                  </div>
-                  <div className="flex items-center gap-2 mt-auto pt-1">
-                    {kpi.category && <span className="badge-gray capitalize">{kpi.category}</span>}
-                    {kpi.change_percent != null && (
-                      <span className={`text-xs font-semibold ${kpi.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
-                        {kpi.change_percent > 0 ? '+' : ''}{kpi.change_percent?.toFixed(1)}%
+            <motion.div
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+              initial="hidden"
+              animate="visible"
+              variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.07 } } }}
+            >
+              {kpis.map(kpi => {
+                const catColors: Record<string, string> = {
+                  sales: '#22d3a5', revenue: '#4f8bff', marketing: '#a78bfa',
+                  operations: '#f5a623', finance: '#ff5c7a', hr: '#8892b0',
+                }
+                const accent = catColors[kpi.category?.toLowerCase()] || '#4f8bff'
+                return (
+                  <motion.div key={kpi.id} className="glow-on-hover"
+                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } }}
+                    whileHover={{ y: -2 } as any}
+                    style={{
+                      padding: '16px 18px', borderRadius: 14,
+                      background: 'var(--glass-bg)', border: '1px solid var(--glass-border)',
+                      position: 'relative', overflow: 'hidden',
+                    }}
+                  >
+                    {/* Left accent bar */}
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: accent, borderRadius: '14px 0 0 14px' }} />
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%' }}>
+                        {kpi.name}
                       </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                      {kpi.trend === 'up'
+                        ? <TrendingUp size={13} style={{ color: '#22d3a5', flexShrink: 0 }} />
+                        : kpi.trend === 'down'
+                        ? <TrendingDown size={13} style={{ color: '#ff5c7a', flexShrink: 0 }} />
+                        : null}
+                    </div>
+
+                    <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1, marginBottom: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {kpi.unit === '$' && <span style={{ fontSize: 15, color: 'var(--text-muted)', fontWeight: 500 }}>$</span>}
+                      {typeof kpi.value === 'number' ? kpi.value.toLocaleString() : kpi.value}
+                      {kpi.unit && kpi.unit !== '$' && <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500, marginLeft: 3 }}>{kpi.unit}</span>}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {kpi.category && (
+                        <span style={{ fontSize: 10.5, fontWeight: 600, color: accent, background: `${accent}18`, padding: '2px 8px', borderRadius: 5, textTransform: 'capitalize' }}>
+                          {kpi.category}
+                        </span>
+                      )}
+                      {kpi.change_percent != null && (
+                        <span style={{ fontSize: 11, fontWeight: 700, color: kpi.trend === 'up' ? '#22d3a5' : '#ff5c7a' }}>
+                          {kpi.change_percent > 0 ? '+' : ''}{kpi.change_percent?.toFixed(1)}%
+                        </span>
+                      )}
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </motion.div>
           )}
         </div>
       )}
+
 
       {/* ── Trends Tab ── */}
       {activeTab === 'trends' && (
