@@ -1,112 +1,86 @@
-# 🚀 Enterprise AI Decision Intelligence Platform
+# 🚀 Enterprise AI Decision Intelligence Platform (NexusAI)
 
-A **fully open-source, production-ready** AI platform for smarter, faster, data-driven business decisions.  
-Uses **100% free APIs and libraries** — no paid subscriptions required.
+A **fully open-source, production-ready** AI platform designed to empower organizations with smarter, faster, data-driven business decisions.  
+Built exclusively using **100% free APIs and libraries** — no paid subscriptions required.
 
 ---
 
 ## 🌟 Features Overview
 
-| Module                       | Features                                                               |
-| ---------------------------- | ---------------------------------------------------------------------- |
-| 🗄️ **Data Management**       | Upload CSV, Excel, JSON, PDF, DOCX, TXT · Preview · Stats · Clean      |
-| 🤖 **AI Chat (RAG)**         | Chat with your data using Groq LLM + ChromaDB vector search            |
-| 🧠 **Machine Learning**      | Classification, Regression, Forecasting, Anomaly Detection, Clustering |
-| 📝 **NLP Analysis**          | Sentiment, NER, Summarization, Zero-shot Classification, Keywords      |
-| 📊 **Analytics & BI**        | KPIs, Trend Analysis, Comparative Analysis, What-if Scenarios          |
-| 🤝 **AI Agents**             | Data, Research, Finance, Marketing, Report agents + Orchestration      |
-| 📄 **Document Intelligence** | Summarize, Q&A, Extract, Compare documents                             |
-| 🎤 **Meeting Intelligence**  | Transcript analysis, Action item extraction, Follow-up generation      |
-| 🔐 **Security**              | JWT Auth, Role-based access, Activity logs                             |
+| Module                       | Capabilities                                                                 |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| 🗄️ **Data Management**       | Upload CSV, Excel, JSON, PDF, DOCX, TXT · Preview · Stats · Auto-Cleaning    |
+| 🤖 **AI Chat (RAG)**         | Chat with your data using Groq LLM (LLaMA 3.1) + ChromaDB vector search      |
+| 🧠 **Machine Learning**      | Classification, Regression, Time-Series Forecasting, Anomaly Detection, Clustering |
+| 📝 **NLP Analysis**          | Sentiment Analysis, NER, Summarization, Zero-shot Classification             |
+| 📊 **Analytics & BI**        | KPIs, Trend Analysis, Comparative Analysis, Customer Segmentation            |
+| 🤝 **Autonomous AI Agents**  | Data, Research, Finance, Marketing, and Report agents with Orchestration     |
+| 📄 **Document Intelligence** | Summarize, Q&A, Extract, and Compare documents                               |
+| 🔐 **Security & Access**     | JWT Authentication, Role-based Access Control (RBAC), Activity Logging       |
+
+---
+
+## 📈 Machine Learning Capabilities (v2.0 Updates)
+
+The ML pipeline has been completely overhauled for enterprise-grade performance and reliability:
+
+- **Expanded Model Factory**: Support for **XGBoost, Gradient Boosting, Random Forest, Support Vector Machines (SVM), and Linear/Logistic Regression**.
+- **Time-Series Forecasting**: Integrated **Facebook Prophet** for highly accurate temporal predictions with trend and seasonality decomposition.
+- **Unsupervised Anomaly Detection**: Integrated **Isolation Forest** algorithms for automated fraud and outlier detection in financial/operational data.
+- **Customer Segmentation**: **K-Means clustering** (with dynamic inertia evaluation) to group high-value customers and identify churn risks.
+- **Advanced Preprocessing**: Robust pipeline featuring median imputation for missing values, automatic low-cardinality categorical encoding, and automated pruning of high-cardinality noise.
+- **Deep Evaluation Metrics**: Granular model evaluation reporting Accuracy, F1-Score, Precision, Recall, MAE, RMSE, and R² Score alongside automated feature importance extraction.
 
 ---
 
 ## 🆓 Free AI Services Used
 
-| Service                                          | Purpose                   | Free Tier             |
+| Service                                          | Purpose                   | Cost / Tier           |
 | ------------------------------------------------ | ------------------------- | --------------------- |
-| [**Groq**](https://console.groq.com)             | LLM inference (LLaMA 3.1) | 14,400 req/day FREE   |
-| [**Google Gemini**](https://aistudio.google.com) | Fallback LLM              | FREE tier             |
-| **ChromaDB**                                     | Vector database           | Local, unlimited FREE |
-| **sentence-transformers**                        | Text embeddings           | Local, unlimited FREE |
-| **HuggingFace Transformers**                     | NLP models                | Local, unlimited FREE |
-| **scikit-learn**                                 | ML algorithms             | Local, unlimited FREE |
+| [**Groq**](https://console.groq.com)             | Primary LLM (LLaMA 3.1)   | 14,400 req/day FREE   |
+| [**Google Gemini**](https://aistudio.google.com) | Fallback LLM Engine       | FREE tier             |
+| **ChromaDB**                                     | Vector Database (RAG)     | Local, unlimited FREE |
+| **sentence-transformers**                        | Text Embeddings           | Local, unlimited FREE |
+| **HuggingFace Transformers**                     | Local NLP execution       | Local, unlimited FREE |
+| **scikit-learn & XGBoost**                       | ML Engine                 | Local, unlimited FREE |
 | **Prophet**                                      | Time series forecasting   | Local, unlimited FREE |
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 enterprise-ai-platform/
 ├── backend/                        # FastAPI Python backend
 │   ├── app/
-│   │   ├── api/                    # REST API endpoints
-│   │   │   ├── auth.py             # Authentication (login/register)
-│   │   │   ├── data.py             # Data upload & management
-│   │   │   ├── chat.py             # RAG-powered AI chat
-│   │   │   ├── ml.py               # Machine learning
-│   │   │   ├── nlp.py              # NLP analysis
-│   │   │   ├── analytics.py        # KPIs, reports, alerts
-│   │   │   ├── agents.py           # AI agent system
-│   │   │   └── documents.py        # Document intelligence
-│   │   ├── models/
-│   │   │   └── __init__.py         # All SQLAlchemy models
-│   │   ├── services/
-│   │   │   ├── llm_service.py      # Groq + Gemini LLM
-│   │   │   ├── rag_service.py      # ChromaDB RAG
-│   │   │   ├── ml_service.py       # ML training & prediction
-│   │   │   ├── nlp_service.py      # HuggingFace NLP
-│   │   │   ├── analytics_service.py # BI & analytics
-│   │   │   ├── agent_service.py    # Multi-agent orchestration
-│   │   │   └── data_service.py     # Data processing
-│   │   ├── utils/
-│   │   │   └── auth.py             # JWT utilities
-│   │   ├── config.py               # App configuration
-│   │   └── database.py             # SQLAlchemy setup
-│   ├── data/                       # Runtime data (auto-created)
-│   │   ├── uploads/                # Uploaded files
-│   │   ├── vectors/                # ChromaDB vector store
-│   │   └── models/                 # Trained ML models
-│   ├── main.py                     # FastAPI app entry point
-│   ├── requirements.txt            # Python dependencies
-│   └── .env.example                # Environment config template
+│   │   ├── api/                    # RESTful API router endpoints
+│   │   ├── models/                 # SQLAlchemy database schemas
+│   │   ├── services/               # Core logic (ML, NLP, Agents, RAG)
+│   │   ├── utils/                  # Security and JWT helpers
+│   │   ├── config.py               # Application configuration
+│   │   └── database.py             # SQLite / PostgreSQL setup
+│   ├── data/                       # Persistent Volume Mounts
+│   │   ├── uploads/                # User uploaded datasets/documents
+│   │   ├── vectors/                # ChromaDB vector indexes
+│   │   └── models/                 # Serialized .pkl ML models
+│   ├── main.py                     # FastAPI application entry point
+│   └── requirements.txt            # Python dependencies
 │
-├── frontend/                       # React + TypeScript frontend
+├── frontend/                       # React + TypeScript + Vite frontend
 │   ├── src/
-│   │   ├── components/
-│   │   │   └── layout/
-│   │   │       └── AppLayout.tsx   # Sidebar + header
-│   │   ├── pages/
-│   │   │   ├── LoginPage.tsx       # Authentication
-│   │   │   ├── DashboardPage.tsx   # Main dashboard
-│   │   │   ├── DataPage.tsx        # Data management
-│   │   │   ├── ChatPage.tsx        # AI chat
-│   │   │   ├── MLPage.tsx          # Machine learning
-│   │   │   ├── NLPPage.tsx         # NLP analysis
-│   │   │   ├── AnalyticsPage.tsx   # Analytics & BI
-│   │   │   ├── AgentsPage.tsx      # AI agents
-│   │   │   ├── DocumentsPage.tsx   # Document intelligence
-│   │   │   ├── ReportsPage.tsx     # Reports viewer
-│   │   │   └── SettingsPage.tsx    # Settings
-│   │   ├── services/
-│   │   │   └── api.ts              # All API calls
-│   │   ├── store/
-│   │   │   └── index.ts            # Zustand global state
-│   │   ├── App.tsx                 # Router
-│   │   ├── main.tsx                # Entry point
-│   │   └── index.css               # Global styles
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── tailwind.config.js
-│
-├── docs/                           # Documentation
+│   │   ├── components/             # Reusable UI components
+│   │   ├── pages/                  # Route views (Dashboard, Agents, ML)
+│   │   ├── services/               # Axios API client integrations
+│   │   ├── store/                  # Zustand global state management
+│   │   └── App.tsx                 # React Router
+│   ├── package.json                # Node dependencies
+│   └── tailwind.config.js          # Tailwind CSS styling engine
 └── README.md
 ```
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Quick Start (Local Environment)
 
 ### Prerequisites
 
@@ -189,41 +163,35 @@ Frontend runs at: **http://localhost:5173**
 ## 🎯 How to Use
 
 ### 1. Upload Your Data
-
-- Go to **Data Management** → drag & drop CSV, Excel, JSON, PDF, or DOCX
-- Files are auto-analyzed and indexed for RAG search
+- Go to **Data Management** → drag & drop CSV, Excel, JSON, PDF, or DOCX.
+- Files are auto-analyzed, cleaned (median imputation, encoding), and indexed for RAG search.
 
 ### 2. Chat with Your Data
-
-- Go to **AI Chat** → select your uploaded files → ask questions in natural language
-- The AI finds relevant context from your documents and answers accurately
+- Go to **AI Chat** → select your uploaded files → ask questions in natural language.
+- The AI uses ChromaDB to find relevant context from your documents and answers accurately with Groq LLaMA 3.1.
 
 ### 3. Train ML Models
-
-- Go to **Machine Learning** → click "Train Model"
-- Select your dataset, choose target column, pick algorithm
-- Model trains automatically, shows accuracy, feature importance
+- Go to **Machine Learning** → click "Train Model".
+- Select your dataset, choose target column, pick algorithm (XGBoost, Gradient Boosting, Prophet, etc.).
+- Model trains automatically, showing accuracy, R², F1-scores, and feature importance.
 
 ### 4. Run NLP Analysis
-
-- Go to **NLP Analysis** → paste text → select analysis types
-- Runs sentiment, entity extraction, keywords, summarization
+- Go to **NLP Analysis** → paste text → select analysis types.
+- Runs local sentiment analysis, entity extraction, keywords, and summarization using HuggingFace.
 
 ### 5. Launch AI Agents
-
-- Go to **AI Agents** → describe your goal
-- Agent plans, executes, and delivers comprehensive analysis
+- Go to **AI Agents** → select an agent (Data, Research, Marketing, Finance) or use **Multi-Agent Orchestration**.
+- Describe your goal. The agent plans, executes, and delivers comprehensive step-by-step analysis.
 
 ### 6. Generate Reports
-
-- Go to **Analytics** → AI Reports → enter title → Generate
-- AI creates a full business report from your data
+- Go to **Analytics** → AI Reports → enter title → Generate.
+- AI creates a full business report from your data automatically.
 
 ---
 
 ## 🔧 Configuration
 
-### Environment Variables (backend/.env)
+### Environment Variables (`backend/.env`)
 
 ```env
 # Required for AI features
@@ -243,8 +211,15 @@ MAX_FILE_SIZE_MB=50
 
 ---
 
-## 🐳 Docker Deployment (Optional)
+## 🚀 Deployment Guide (Production & Docker)
 
+### 1. Cloud Deployment (Railway.app - Recommended)
+This project is built to be easily deployed on [Railway](https://railway.app):
+1. **Frontend:** Deploy the `frontend/` directory (Build: `npm run build`, Start: `npx serve -s dist`).
+2. **Backend:** Deploy the `backend/` directory natively using Railway's Python environment.
+3. **Data Persistence:** Create a **Railway Volume** and mount it to `/data` in your backend service. Set your environment variable `DATABASE_URL=sqlite:////data/enterprise_ai.db`. This perfectly preserves your database, trained `.pkl` models, and ChromaDB vector files without needing PostgreSQL!
+
+### 2. Docker Deployment (Local / VPS)
 ```bash
 # Build and run with Docker
 docker build -t enterprise-ai-backend ./backend
@@ -260,13 +235,11 @@ cd frontend && npm run build
 ## 📖 API Documentation
 
 Once running, visit:
-
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 
 Key endpoints:
-
-```
+```text
 POST /api/auth/login          → Get JWT token
 POST /api/data/upload         → Upload files
 GET  /api/data/sources        → List uploaded files
@@ -275,6 +248,7 @@ POST /api/ml/train            → Train ML model
 POST /api/nlp/analyze         → NLP analysis
 GET  /api/analytics/dashboard → Dashboard metrics
 POST /api/agents/run          → Run AI agent
+POST /api/agents/orchestrate  → Run multi-agent orchestrator
 POST /api/documents/summarize → Summarize document
 ```
 
@@ -295,9 +269,4 @@ POST /api/documents/summarize → Summarize document
 MIT License — Free for personal and commercial use.
 
 ---
-
-**Built with ❤️ using FastAPI, React, Groq, ChromaDB, HuggingFace, scikit-learn**
-
-py -3.11 -m venv venv
-.\venv\Scripts\activate
-python main.py
+**Built with ❤️ using FastAPI, React, Groq, ChromaDB, HuggingFace, XGBoost, and scikit-learn**
