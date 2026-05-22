@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { analyticsAPI } from '../services/api'
 import toast from 'react-hot-toast'
 import { TrendingUp, FileText, Users, Send, Loader2, Zap, Target, Mail } from 'lucide-react'
@@ -11,6 +11,7 @@ export default function MarketingAI() {
   const [activeTab, setActiveTab] = useState<'content' | 'ad' | 'email' | 'trends'>('content')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
+  const [width, setWidth] = useState(window.innerWidth)
 
   const [contentForm, setContentForm] = useState({
     content_type: 'email', topic: '', tone: 'professional',
@@ -30,6 +31,14 @@ export default function MarketingAI() {
   const [trendsForm, setTrendsForm] = useState({
     industry: '', current_challenges: '', target_audience: '',
   })
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isMobile = width < 768
 
   const run = async () => {
     setLoading(true); setResult(null)
@@ -62,7 +71,7 @@ export default function MarketingAI() {
   ]
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
+    <div className="p-6 space-y-6 animate-fade-in" style={{ padding: isMobile ? 16 : 24 }}>
       <div>
         <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
           <TrendingUp size={20} className="text-[var(--accent)]" /> Marketing Intelligence
@@ -70,11 +79,11 @@ export default function MarketingAI() {
         <p className="text-sm text-[var(--text-secondary)] mt-0.5">AI-powered content, ad copy, campaign emails & trend analysis</p>
       </div>
 
-      <div className="flex gap-1 border-b border-[var(--border)]">
+      <div className="tabs" style={{ gap: 6, marginBottom: 0 }}>
         {tabs.map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => { setActiveTab(id as any); setResult(null) }}
-            className={clsx('flex items-center gap-1.5 px-4 py-2 text-sm border-b-2 transition-colors',
-              activeTab === id ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-[var(--text-muted)]')}>
+            className={clsx('tab', activeTab === id && 'active')}
+            style={{ minWidth: isMobile ? 116 : undefined, justifyContent: 'center' }}>
             <Icon size={14} />{label}
           </button>
         ))}
@@ -86,7 +95,7 @@ export default function MarketingAI() {
           {activeTab === 'content' && (
             <>
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">Generate Marketing Content</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3" style={{ gridTemplateColumns: isMobile ? '1fr' : undefined }}>
                 <div>
                   <label className="block text-xs text-[var(--text-secondary)] mb-1.5">Content Type</label>
                   <select className="input" value={contentForm.content_type}
@@ -111,7 +120,7 @@ export default function MarketingAI() {
                 <input className="input" placeholder="e.g. New product launch, Summer sale..."
                   value={contentForm.topic} onChange={e => setContentForm(f => ({ ...f, topic: e.target.value }))} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3" style={{ gridTemplateColumns: isMobile ? '1fr' : undefined }}>
                 <div>
                   <label className="block text-xs text-[var(--text-secondary)] mb-1.5">Brand Name</label>
                   <input className="input" placeholder="Your Company"
@@ -134,7 +143,7 @@ export default function MarketingAI() {
           {activeTab === 'ad' && (
             <>
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">Generate Ad Copy</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3" style={{ gridTemplateColumns: isMobile ? '1fr' : undefined }}>
                 <div>
                   <label className="block text-xs text-[var(--text-secondary)] mb-1.5">Platform</label>
                   <select className="input" value={adForm.platform}
@@ -209,7 +218,7 @@ export default function MarketingAI() {
             </>
           )}
 
-          <button onClick={run} disabled={loading} className="btn-primary">
+          <button onClick={run} disabled={loading} className="btn-primary" style={{ width: isMobile ? '100%' : 'auto', justifyContent: 'center' }}>
             {loading ? <><Loader2 size={14} className="animate-spin" /> Generating...</> : <><Zap size={14} /> Generate</>}
           </button>
         </div>

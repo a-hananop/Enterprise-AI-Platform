@@ -11,6 +11,7 @@ export default function Documents() {
   const [docSources, setDocSources] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
+  const [width, setWidth] = useState(window.innerWidth)
 
   // Forms
   const [summarizeForm, setSummarizeForm] = useState({ source_id: '', focus: '' })
@@ -18,6 +19,14 @@ export default function Documents() {
   const [extractForm, setExtractForm] = useState({ source_id: '', extract_type: 'key_info' })
   const [compareForm, setCompareForm] = useState({ source_ids: [] as string[], comparison_aspect: '' })
   const [meetingForm, setMeetingForm] = useState({ transcript: '', meeting_title: '' })
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isMobile = width < 768
 
   useEffect(() => {
     dataAPI.list({ limit: 50 }).then(r => {
@@ -71,7 +80,7 @@ export default function Documents() {
   ]
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
+    <div className="p-6 space-y-6 animate-fade-in" style={{ padding: isMobile ? 16 : 24 }}>
       <div>
         <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
           <BookOpen size={20} className="text-[var(--accent)]" /> Document Intelligence
@@ -86,11 +95,11 @@ export default function Documents() {
         )}
       </div>
 
-      <div className="flex gap-1 border-b border-[var(--border)]">
+      <div className="tabs" style={{ gap: 6, marginBottom: 0 }}>
         {tabs.map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => { setActiveTab(id as any); setResult(null) }}
-            className={clsx('flex items-center gap-1.5 px-4 py-2 text-sm border-b-2 transition-colors',
-              activeTab === id ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]')}>
+            className={clsx('tab', activeTab === id && 'active')}
+            style={{ minWidth: isMobile ? 110 : undefined, justifyContent: 'center' }}>
             <Icon size={14} />{label}
           </button>
         ))}

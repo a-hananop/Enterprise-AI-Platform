@@ -27,6 +27,15 @@ export default function Analytics() {
   const [trendForm, setTrendForm] = useState({ data_source_id: '', date_column: '', value_columns: '', granularity: 'monthly' })
   const [trendData, setTrendData] = useState<any>(null)
   const [trendLoading, setTrendLoading] = useState(false)
+  const [width, setWidth] = useState(window.innerWidth)
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isMobile = width < 768
 
   useEffect(() => {
     loadAll()
@@ -104,8 +113,8 @@ export default function Analytics() {
   const tabularSources = sources.filter(s => ['csv', 'excel', 'json'].includes(s.source_type))
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+    <div className="p-6 space-y-6 animate-fade-in" style={{ padding: isMobile ? 16 : 24 }}>
+      <div className="flex items-center justify-between" style={{ gap: 12, flexWrap: 'wrap' }}>
         <div>
           <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <BarChart3 size={20} className="text-[var(--accent)]" /> Analytics & Business Intelligence
@@ -116,7 +125,7 @@ export default function Analytics() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-[var(--border)]">
+      <div className="tabs" style={{ gap: 6, marginBottom: 0 }}>
         {[
           { id: 'kpis', label: 'KPIs & Metrics', icon: BarChart3 },
           { id: 'trends', label: 'Trend Analysis', icon: TrendingUp },
@@ -124,8 +133,8 @@ export default function Analytics() {
           { id: 'alerts', label: `Alerts ${alerts.filter(a => !a.is_read).length > 0 ? `(${alerts.filter(a => !a.is_read).length})` : ''}`, icon: Bell },
         ].map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => setActiveTab(id as any)}
-            className={clsx('flex items-center gap-1.5 px-4 py-2 text-sm border-b-2 transition-colors',
-              activeTab === id ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]')}>
+            className={clsx('tab', activeTab === id && 'active')}
+            style={{ minWidth: isMobile ? 118 : undefined, justifyContent: 'center' }}>
             <Icon size={14} />{label}
           </button>
         ))}
@@ -137,13 +146,13 @@ export default function Analytics() {
           {/* Extract from dataset */}
           {tabularSources.length > 0 && (
             <div className="card p-4 border-[var(--accent)]/20">
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center justify-between gap-4" style={{ flexWrap: 'wrap' }}>
                 <div>
                   <p className="text-sm font-semibold text-[var(--text-primary)]">Auto-Extract KPIs</p>
                   <p className="text-xs text-[var(--text-muted)]">Let AI identify and extract key metrics from your data</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <select className="input w-48" onChange={e => e.target.value && extractKPIs(e.target.value)} defaultValue="">
+                <div className="flex items-center gap-2" style={{ width: isMobile ? '100%' : 'auto' }}>
+                  <select className="input w-48" style={{ width: isMobile ? '100%' : undefined }} onChange={e => e.target.value && extractKPIs(e.target.value)} defaultValue="">
                     <option value="" disabled>Select dataset...</option>
                     {tabularSources.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
@@ -261,7 +270,7 @@ export default function Analytics() {
                 </select>
               </div>
             </div>
-            <button onClick={loadTrends} disabled={trendLoading} className="btn-primary">
+            <button onClick={loadTrends} disabled={trendLoading} className="btn-primary" style={{ width: isMobile ? '100%' : 'auto', justifyContent: 'center' }}>
               {trendLoading ? <><Loader2 size={14} className="animate-spin" /> Analyzing...</> : <><TrendingUp size={14} /> Analyze Trends</>}
             </button>
           </div>
