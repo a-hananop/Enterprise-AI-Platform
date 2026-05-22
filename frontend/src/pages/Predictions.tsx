@@ -131,7 +131,7 @@ export default function Predictions() {
       ) : (
         <div style={{
           position: 'fixed', top: 60, left: 0, bottom: 0,
-          width: 290, zIndex: 150,
+          width: 'min(88vw, 290px)', zIndex: 150,
           transform: showModelsMobile ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
           boxShadow: showModelsMobile ? '6px 0 30px rgba(0,0,0,0.5)' : 'none',

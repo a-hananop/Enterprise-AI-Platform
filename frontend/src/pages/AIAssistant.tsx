@@ -248,7 +248,7 @@ export default function AIAssistant() {
       ) : (
         <div style={{
           position: 'fixed', top: 60, left: 0, bottom: 0,
-          width: 280, zIndex: 150,
+          width: 'min(86vw, 280px)', zIndex: 150,
           transform: showSessionsMobile ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
           boxShadow: showSessionsMobile ? '6px 0 30px rgba(0,0,0,0.5)' : 'none',

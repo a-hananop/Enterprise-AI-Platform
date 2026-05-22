@@ -60,6 +60,7 @@ export default function AppLayout() {
   }, [])
 
   const isMobile = width < 1024
+  const isCompactMobile = width < 480
 
   useEffect(() => {
     analyticsAPI.dashboard()
@@ -69,10 +70,10 @@ export default function AppLayout() {
 
   // Auto-close the drawer on mobile when the route changes.
   useEffect(() => {
-    if (isMobile && sidebarOpen) {
+    if (isMobile) {
       setSidebarOpen(false)
     }
-  }, [isMobile, location.pathname, sidebarOpen, setSidebarOpen])
+  }, [isMobile, location.pathname, setSidebarOpen])
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-base)', position: 'relative' }}>
@@ -95,9 +96,9 @@ export default function AppLayout() {
 
       {/* ── Sidebar ── */}
       <aside style={{
-        width: isMobile ? 240 : (sidebarOpen ? 220 : 60),
+        width: isMobile ? 264 : (sidebarOpen ? 220 : 60),
         position: isMobile ? 'fixed' : 'relative',
-        left: isMobile ? (sidebarOpen ? 0 : -240) : 0,
+        left: isMobile ? (sidebarOpen ? 0 : -264) : 0,
         top: 0,
         bottom: 0,
         zIndex: 150,
@@ -253,12 +254,12 @@ export default function AppLayout() {
         <header style={{
           height: 60, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: isMobile ? '0 16px' : '0 24px',
+          padding: isMobile ? '0 12px' : '0 24px',
           borderBottom: '1px solid var(--glass-border)',
           background: 'rgba(12,14,26,0.7)',
           backdropFilter: 'blur(20px)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 12, minWidth: 0 }}>
             <button className="btn-ghost" onClick={toggleSidebar} style={{ padding: '7px 9px' }}>
               <Menu size={16} />
             </button>
@@ -270,37 +271,40 @@ export default function AppLayout() {
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <button
-              className="btn-ghost"
-              onClick={() => navigate('/analytics')}
-              style={{ padding: '7px 10px', position: 'relative' }}
-            >
-              <Bell size={16} />
-              <AnimatePresence>
-                {unreadAlerts > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    style={{
-                      position: 'absolute', top: 4, right: 4,
-                      width: 16, height: 16, borderRadius: '50%',
-                      background: 'var(--danger)', color: '#fff',
-                      fontSize: 9, fontWeight: 700,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}
-                  >
-                    {unreadAlerts}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+            {!isCompactMobile && (
+              <button
+                className="btn-ghost"
+                onClick={() => navigate('/analytics')}
+                style={{ padding: '7px 10px', position: 'relative', flexShrink: 0 }}
+              >
+                <Bell size={16} />
+                <AnimatePresence>
+                  {unreadAlerts > 0 && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      style={{
+                        position: 'absolute', top: 4, right: 4,
+                        width: 16, height: 16, borderRadius: '50%',
+                        background: 'var(--danger)', color: '#fff',
+                        fontSize: 9, fontWeight: 700,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >
+                      {unreadAlerts}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </button>
+            )}
 
             <div style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              padding: '6px 12px', borderRadius: 9,
+              padding: isCompactMobile ? '6px 8px' : '6px 12px', borderRadius: 9,
               background: 'var(--glass-bg)', border: '1px solid var(--glass-border)',
+              minWidth: 0,
             }}>
               <div style={{
                 width: 24, height: 24, borderRadius: 6,
@@ -328,7 +332,7 @@ export default function AppLayout() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-            style={{ flex: 1, overflowY: 'auto' }}
+            style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}
           >
             <Outlet />
           </motion.main>
