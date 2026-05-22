@@ -91,11 +91,11 @@ export default function SignupPage() {
           </div>
         )}
         <input
-          className="input"
+          className={`input signup-input ${errors[key] ? 'signup-input-error' : ''}`}
           type={key === 'password' || key === 'confirm_password' ? (showPw ? 'text' : 'password') : type}
           placeholder={placeholder}
           value={form[key]}
-          style={{ paddingLeft: icon ? 38 : 13, borderColor: errors[key] ? 'rgba(255,92,122,0.5)' : undefined }}
+          style={{ paddingLeft: icon ? 38 : 13 }}
           onChange={e => { setForm(f => ({ ...f, [key]: e.target.value })); setErrors(prev => { const n = {...prev}; delete n[key]; return n }) }}
           autoComplete={key === 'password' ? 'new-password' : key === 'email' ? 'email' : 'off'}
         />
@@ -122,6 +122,27 @@ export default function SignupPage() {
       backgroundImage: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(79,139,255,0.08) 0%, transparent 60%)',
       padding: '40px 20px',
     }}>
+      
+      {/* ── Custom input style overrides to bypass global !important styles ── */}
+      <style>{`
+        .signup-input {
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .signup-input:focus {
+          background: rgba(79,139,255,0.07) !important;
+          border-color: rgba(79,139,255,0.55) !important;
+          box-shadow: 0 0 0 3px rgba(79,139,255,0.15) !important;
+        }
+        .signup-input-error {
+          border-color: rgba(255,92,122,0.55) !important;
+          background: rgba(255,92,122,0.04) !important;
+        }
+        .signup-input-error:focus {
+          border-color: rgba(255,92,122,0.7) !important;
+          box-shadow: 0 0 0 3px rgba(255,92,122,0.15) !important;
+        }
+      `}</style>
+
       <div style={{ width: '100%', maxWidth: 520 }}>
 
         {/* Logo */}
