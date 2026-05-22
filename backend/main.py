@@ -1,6 +1,8 @@
 """
 Enterprise AI Decision Intelligence Platform — Main Application
 """
+import os
+import sys
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -166,4 +168,22 @@ app = create_app()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, log_level="warning")
+
+    # On Windows, reload mode starts a child process and Ctrl+C can print a noisy
+    # CancelledError/KeyboardInterrupt traceback during an otherwise clean shutdown.
+    # Keep direct `python main.py` runs quiet unless reload is explicitly requested.
+    reload_enabled = os.getenv("UVICORN_RELOAD", "").lower() in {"1", "true", "yes", "on"}
+
+    if sys.platform.startswith("win") and reload_enabled:
+        logger.warning("Windows reload mode may print noisy shutdown tracebacks on Ctrl+C.")
+
+    try:
+        uvicorn.run(
+            "main:app",
+            host="0.0.0.0",
+            port=8000,
+            reload=reload_enabled,
+            log_level="warning",
+        )
+    except KeyboardInterrupt:
+        logger.info("Shutdown interrupted by user")
