@@ -14,7 +14,7 @@ const TYPE_COLOR: Record<string, string> = {
 }
 
 function formatSize(b: number) {
-  if (!b) return '—'
+  if (!b) return '--'
   if (b < 1024) return `${b} B`
   if (b < 1024 ** 2) return `${(b / 1024).toFixed(1)} KB`
   return `${(b / 1024 ** 2).toFixed(1)} MB`
@@ -30,6 +30,16 @@ export default function DataHub() {
   const [tab, setTab] = useState<'preview' | 'stats'>('preview')
   const [search, setSearch] = useState('')
   const [storage, setStorage] = useState<any>(null)
+  const [width, setWidth] = useState(window.innerWidth)
+  const [activeMobileView, setActiveMobileView] = useState<'list' | 'details'>('list')
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isMobile = width < 1024
 
   useEffect(() => { load() }, [])
 
@@ -63,6 +73,7 @@ export default function DataHub() {
 
   const select = async (src: any) => {
     setSelected(src); setPreview(null); setStats(null); setTab('preview')
+    setActiveMobileView('details')
     try { const r = await dataAPI.preview(src.id); setPreview(r.data) } catch {}
   }
 
@@ -78,7 +89,10 @@ export default function DataHub() {
     try {
       await dataAPI.delete(id)
       setSources(prev => prev.filter(s => s.id !== id))
-      if (selected?.id === id) setSelected(null)
+      if (selected?.id === id) {
+        setSelected(null)
+        setActiveMobileView('list')
+      }
       toast.success('Deleted')
     } catch { toast.error('Delete failed') }
   }
@@ -86,10 +100,11 @@ export default function DataHub() {
   const filtered = sources.filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 60px)', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: isMobile ? 'calc(100vh - 60px)' : 'calc(100vh - 60px)', overflow: 'hidden' }}>
 
       {/* Left panel */}
-      <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--glass-border)', background: 'rgba(12,14,26,0.6)', overflow: 'hidden' }}>
+      {(!isMobile || activeMobileView === 'list') && (
+        <div style={{ width: isMobile ? '100%' : 300, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: isMobile ? 'none' : '1px solid var(--glass-border)', background: 'rgba(12,14,26,0.6)', overflow: 'hidden' }}>
 
         {/* Upload zone */}
         <div style={{ padding: 16, borderBottom: '1px solid var(--glass-border)' }}>
@@ -113,7 +128,7 @@ export default function DataHub() {
                 <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
                   {isDragActive ? 'Drop files here' : 'Drop files or click to upload'}
                 </p>
-                <p style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>CSV · Excel · JSON · PDF · DOCX · TXT</p>
+                <p style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>CSV - Excel - JSON - PDF - DOCX - TXT</p>
               </div>
             )}
           </div>
@@ -189,143 +204,157 @@ export default function DataHub() {
           ))}
         </div>
       </div>
+      )}
 
       {/* Right panel */}
-      <div className="slide-in-right" style={{ flex: 1, overflow: 'auto', background: 'var(--bg-base)' }}>
-        {!selected ? (
-          <div className="empty" style={{ height: '100%' }}>
-            <div className="empty-icon"><Eye size={22} /></div>
-            <div className="empty-title">Select a file to preview</div>
-            <div className="empty-desc">Click any file on the left to see its contents and statistics</div>
-          </div>
-        ) : (
-          <div style={{ padding: 28 }} className="fade-in">
-            {/* File header */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
-              <div>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>{selected.name}</h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: TYPE_COLOR[selected.source_type] || '#888', background: `${TYPE_COLOR[selected.source_type] || '#888'}18`, padding: '2px 8px', borderRadius: 5 }}>
-                    {selected.source_type}
-                  </span>
-                  {selected.row_count && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{selected.row_count.toLocaleString()} rows × {selected.column_count} columns</span>}
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{formatSize(selected.file_size)}</span>
-                  {selected.is_indexed && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--success)' }}>
-                      <CheckCircle size={11} /> Indexed for AI
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn-secondary" onClick={load}><RefreshCw size={13} /> Refresh</button>
-                <button className="btn-danger" onClick={() => del(selected.id)}><Trash2 size={13} /> Delete</button>
-              </div>
+      {(!isMobile || activeMobileView === 'details') && (
+        <div className="slide-in-right" style={{ flex: 1, overflow: 'auto', background: 'var(--bg-base)', width: isMobile ? '100%' : 'auto' }}>
+          {!selected ? (
+            <div className="empty" style={{ height: '100%' }}>
+              <div className="empty-icon"><Eye size={22} /></div>
+              <div className="empty-title">Select a file to preview</div>
+              <div className="empty-desc">Click any file on the left to see its contents and statistics</div>
             </div>
-
-            {/* Tabs */}
-            <div className="tabs">
-              {[
-                { id: 'preview', label: 'Preview', icon: Eye },
-                { id: 'stats',   label: 'Statistics', icon: BarChart2 },
-              ].map(({ id, label, icon: Icon }) => (
-                <button key={id}
-                  onClick={() => id === 'stats' ? loadStats() : setTab('preview')}
-                  className={clsx('tab', tab === id && 'active')}
+          ) : (
+            <div style={{ padding: isMobile ? 16 : 28 }} className="fade-in">
+              {/* Back button for mobile */}
+              {isMobile && (
+                <button
+                  className="btn-ghost"
+                  onClick={() => setActiveMobileView('list')}
+                  style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6, paddingLeft: 0 }}
                 >
-                  <Icon size={13} /> {label}
+                  <X size={15} /> Back to Files
                 </button>
-              ))}
-            </div>
+              )}
 
-            {/* Preview */}
-            {tab === 'preview' && (
-              <div className="card" style={{ overflow: 'hidden' }}>
-                {!preview ? (
-                  <div style={{ padding: 40, textAlign: 'center' }}><Loader2 size={20} className="spin" color="var(--accent)" /></div>
-                ) : Array.isArray(preview.data) && preview.data.length > 0 ? (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table className="table">
-                      <thead>
-                        <tr>{Object.keys(preview.data[0] || {}).map(col => <th key={col}>{col}</th>)}</tr>
-                      </thead>
-                      <tbody>
-                        {preview.data.map((row: any, i: number) => (
-                          <tr key={i}>
-                            {Object.values(row).map((val: any, j: number) => (
-                              <td key={j} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {String(val ?? '—')}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <pre style={{ padding: 20, fontSize: 12, color: 'var(--text-secondary)', overflowX: 'auto' }}>
-                    {JSON.stringify(preview.data, null, 2)}
-                  </pre>
-                )}
-              </div>
-            )}
-
-            {/* Stats */}
-            {tab === 'stats' && (
-              <div>
-                {!stats ? (
-                  <div style={{ padding: 40, textAlign: 'center' }}><Loader2 size={20} className="spin" color="var(--accent)" /></div>
-                ) : (
-                  <div className="stagger">
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 20 }}>
-                      {[
-                        { label: 'Total Rows',    value: stats.shape?.rows?.toLocaleString()    },
-                        { label: 'Columns',       value: stats.shape?.columns                   },
-                        { label: 'Numeric Cols',  value: stats.numeric_columns || 0             },
-                      ].map(({ label, value }) => (
-                        <div key={label} className="stat">
-                          <div className="stat-label">{label}</div>
-                          <div className="stat-value">{value}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {stats.numeric_summary && Object.keys(stats.numeric_summary).length > 0 && (
-                      <div className="card" style={{ overflow: 'hidden' }}>
-                        <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--glass-border)' }}>
-                          <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-primary)' }}>Numeric Summary</span>
-                        </div>
-                        <div style={{ overflowX: 'auto' }}>
-                          <table className="table">
-                            <thead>
-                              <tr>
-                                <th>Column</th>
-                                {['mean', 'std', 'min', '50%', 'max'].map(s => <th key={s} style={{ textAlign: 'right' }}>{s}</th>)}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {Object.entries(stats.numeric_summary).map(([col, vals]: any) => (
-                                <tr key={col}>
-                                  <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{col}</td>
-                                  {['mean', 'std', 'min', '50%', 'max'].map(k => (
-                                    <td key={k} style={{ textAlign: 'right' }}>
-                                      {vals[k] != null ? Number(vals[k]).toFixed(2) : '—'}
-                                    </td>
-                                  ))}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
+              {/* File header */}
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 24 }}>
+                <div>
+                  <h2 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>{selected.name}</h2>
+                  <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 6 : 10, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: TYPE_COLOR[selected.source_type] || '#888', background: `${TYPE_COLOR[selected.source_type] || '#888'}18`, padding: '2px 8px', borderRadius: 5 }}>
+                      {selected.source_type}
+                    </span>
+                    {selected.row_count && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{selected.row_count.toLocaleString()} rows x {selected.column_count} columns</span>}
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{formatSize(selected.file_size)}</span>
+                    {selected.is_indexed && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--success)' }}>
+                        <CheckCircle size={11} /> Indexed for AI
+                      </span>
                     )}
                   </div>
-                )}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn-secondary" style={{ flex: isMobile ? 1 : 'none' }} onClick={load}><RefreshCw size={13} /> Refresh</button>
+                  <button className="btn-danger" style={{ flex: isMobile ? 1 : 'none' }} onClick={() => del(selected.id)}><Trash2 size={13} /> Delete</button>
+                </div>
               </div>
-            )}
-          </div>
-        )}
-      </div>
+
+              {/* Tabs */}
+              <div className="tabs">
+                {[
+                  { id: 'preview', label: 'Preview', icon: Eye },
+                  { id: 'stats',   label: 'Statistics', icon: BarChart2 },
+                ].map(({ id, label, icon: Icon }) => (
+                  <button key={id}
+                    onClick={() => id === 'stats' ? loadStats() : setTab('preview')}
+                    className={clsx('tab', tab === id && 'active')}
+                  >
+                    <Icon size={13} /> {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Preview */}
+              {tab === 'preview' && (
+                <div className="card" style={{ overflow: 'hidden' }}>
+                  {!preview ? (
+                    <div style={{ padding: 40, textAlign: 'center' }}><Loader2 size={20} className="spin" color="var(--accent)" /></div>
+                  ) : Array.isArray(preview.data) && preview.data.length > 0 ? (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table className="table">
+                        <thead>
+                          <tr>{Object.keys(preview.data[0] || {}).map(col => <th key={col}>{col}</th>)}</tr>
+                        </thead>
+                        <tbody>
+                          {preview.data.map((row: any, i: number) => (
+                            <tr key={i}>
+                              {Object.values(row).map((val: any, j: number) => (
+                                <td key={j} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {String(val ?? '--')}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <pre style={{ padding: 20, fontSize: 12, color: 'var(--text-secondary)', overflowX: 'auto' }}>
+                      {JSON.stringify(preview.data, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              )}
+
+              {/* Stats */}
+              {tab === 'stats' && (
+                <div>
+                  {!stats ? (
+                    <div style={{ padding: 40, textAlign: 'center' }}><Loader2 size={20} className="spin" color="var(--accent)" /></div>
+                  ) : (
+                    <div className="stagger">
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 14, marginBottom: 20 }}>
+                        {[
+                          { label: 'Total Rows',    value: stats.shape?.rows?.toLocaleString()    },
+                          { label: 'Columns',       value: stats.shape?.columns                   },
+                          { label: 'Numeric Cols',  value: stats.numeric_columns || 0             },
+                        ].map(({ label, value }) => (
+                          <div key={label} className="stat">
+                            <div className="stat-label">{label}</div>
+                            <div className="stat-value">{value}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {stats.numeric_summary && Object.keys(stats.numeric_summary).length > 0 && (
+                        <div className="card" style={{ overflow: 'hidden' }}>
+                          <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--glass-border)' }}>
+                            <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-primary)' }}>Numeric Summary</span>
+                          </div>
+                          <div style={{ overflowX: 'auto' }}>
+                            <table className="table">
+                              <thead>
+                                <tr>
+                                  <th>Column</th>
+                                  {['mean', 'std', 'min', '50%', 'max'].map(s => <th key={s} style={{ textAlign: 'right' }}>{s}</th>)}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {Object.entries(stats.numeric_summary).map(([col, vals]: any) => (
+                                  <tr key={col}>
+                                    <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{col}</td>
+                                    {['mean', 'std', 'min', '50%', 'max'].map(k => (
+                                      <td key={k} style={{ textAlign: 'right' }}>
+                                        {vals[k] != null ? Number(vals[k]).toFixed(2) : '--'}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <style>{`.del-btn:hover { opacity: 1 !important; color: var(--danger) !important; }`}</style>
     </div>

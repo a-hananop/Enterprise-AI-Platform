@@ -12,6 +12,15 @@ export default function SettingsPage() {
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' })
   const [sysInfo, setSysInfo] = useState<any>(null)
   const [saving, setSaving] = useState(false)
+  const [width, setWidth] = useState(window.innerWidth)
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isMobile = width < 768
 
   useEffect(() => {
     setProfile({ full_name: user?.full_name || '' })
@@ -41,7 +50,7 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="page fade-in" style={{ maxWidth: 680 }}>
+    <div className="page fade-in" style={{ maxWidth: 680, padding: isMobile ? '16px' : undefined }}>
       <div className="page-header">
         <div className="page-title">Settings</div>
         <div className="page-subtitle">Manage your account and platform configuration</div>
@@ -59,14 +68,14 @@ export default function SettingsPage() {
       {tab === 'profile' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }} className="stagger">
           {/* Avatar */}
-          <div className="card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div className="card" style={{ padding: 20, display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 16 }}>
             <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, rgba(79,139,255,0.3), rgba(124,58,237,0.3))', border: '1px solid rgba(79,139,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>
               {user?.username?.[0]?.toUpperCase()}
             </div>
             <div>
               <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{user?.full_name || user?.username}</div>
               <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{user?.email}</div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                 <span className="badge-blue" style={{ textTransform: 'capitalize' }}>{user?.role}</span>
                 {user?.is_active && <span className="badge-green" style={{ display:'flex', alignItems:'center', gap:4 }}><CheckCircle size={10} /> Active</span>}
               </div>
@@ -75,13 +84,13 @@ export default function SettingsPage() {
 
           <div className="card" style={{ padding: 22 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 18 }}>Edit Profile</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 18 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14, marginBottom: 18 }}>
               <div><label className="label">Full Name</label><input className="input" value={profile.full_name} onChange={e => setProfile(p => ({...p, full_name: e.target.value}))} /></div>
               <div><label className="label">Username</label><input className="input" value={user?.username || ''} disabled /></div>
               <div><label className="label">Email</label><input className="input" value={user?.email || ''} disabled /></div>
               <div><label className="label">Role</label><input className="input" value={user?.role || ''} disabled style={{ textTransform: 'capitalize' }} /></div>
             </div>
-            <button className="btn-primary" onClick={saveProfile} disabled={saving}>
+            <button className="btn-primary" onClick={saveProfile} disabled={saving} style={{ width: isMobile ? '100%' : 'auto', justifyContent: 'center' }}>
               {saving ? <><Loader2 size={13} className="spin" /> Saving...</> : 'Save Changes'}
             </button>
           </div>
@@ -104,7 +113,7 @@ export default function SettingsPage() {
                   onChange={e => setPw(p => ({ ...p, [key]: e.target.value }))} />
               </div>
             ))}
-            <button className="btn-primary" onClick={changePw} disabled={saving} style={{ alignSelf: 'flex-start' }}>
+            <button className="btn-primary" onClick={changePw} disabled={saving} style={{ alignSelf: isMobile ? 'stretch' : 'flex-start', justifyContent: 'center' }}>
               {saving ? <><Loader2 size={13} className="spin" /> Saving...</> : 'Update Password'}
             </button>
           </div>
@@ -116,7 +125,7 @@ export default function SettingsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }} className="stagger">
           <div className="card" style={{ padding: 22 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16 }}>Platform Info</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
               {[
                 { label: 'Version',  value: sysInfo.version  },
                 { label: 'Database', value: 'SQLite (local)' },

@@ -31,6 +31,16 @@ export default function Dashboard() {
   const { user } = useStore()
   const navigate = useNavigate()
   const [data, setData] = useState<any>(null)
+  const [width, setWidth] = useState(window.innerWidth)
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isMobile = width < 1024
+
   useEffect(() => { analyticsAPI.dashboard().then(r => setData(r.data)).catch(() => {}) }, [])
 
   const ov = data?.overview || {}
@@ -54,12 +64,12 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="page">
+    <div className="page" style={{ padding: isMobile ? '16px' : '24px', overflowX: 'hidden' }}>
       {/* Header with 3D Brain */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32, gap: 20 }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column-reverse' : 'row', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'space-between', marginBottom: isMobile ? 20 : 32, gap: 20 }}>
         <motion.div initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6, lineHeight: 1.2 }}>
-            {greeting}, <span style={{ background: 'linear-gradient(90deg,#4f8bff,#a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{user?.full_name?.split(' ')[0] || user?.username}</span> 👋
+          <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6, lineHeight: 1.2 }}>
+            {greeting}, <span style={{ background: 'linear-gradient(90deg,#4f8bff,#a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{user?.full_name?.split(' ')[0] || user?.username}</span>
           </h1>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
             style={{ color: 'var(--text-muted)', fontSize: 13.5 }}>
@@ -67,7 +77,7 @@ export default function Dashboard() {
           </motion.p>
         </motion.div>
         <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3, duration: 0.6 }}
-          style={{ width: 200, height: 200, flexShrink: 0 }}>
+          style={{ width: isMobile ? 120 : 200, height: isMobile ? 120 : 200, flexShrink: 0, alignSelf: isMobile ? 'center' : 'auto' }}>
           <Suspense fallback={null}><AIBrain /></Suspense>
         </motion.div>
       </div>
@@ -84,7 +94,7 @@ export default function Dashboard() {
                 <Icon size={14} color={color} />
               </motion.div>
             </div>
-            <div className="stat-value"><AnimatedCounter value={value} /></div>
+            <div className="stat-value" style={{ fontSize: isMobile ? 22 : 28 }}><AnimatedCounter value={value} /></div>
             {change && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: up ? 'var(--success)' : 'var(--text-muted)' }}>
                 {up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{change} this week
@@ -95,11 +105,11 @@ export default function Dashboard() {
       </div>
 
       {/* Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 16, marginBottom: 28 }}>
-        <motion.div className="card" style={{ padding: 22 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr auto', gap: 16, marginBottom: 28 }}>
+        <motion.div className="card" style={{ padding: isMobile ? 16 : 22 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
           <div className="section-head">
             <div><div className="section-title">Platform Activity</div><div className="section-desc">AI requests over 7 months</div></div>
-            <div className="badge-green" style={{ fontSize: 11.5 }}>↑ 18.2% growth</div>
+            <div className="badge-green" style={{ fontSize: 11.5 }}>Up 18.2% growth</div>
           </div>
           <ResponsiveContainer width="100%" height={160}>
             <AreaChart data={sparkData}>
@@ -121,7 +131,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </motion.div>
 
-        <motion.div className="card" style={{ padding: 22, minWidth: 260 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+        <motion.div className="card" style={{ padding: isMobile ? 16 : 22, minWidth: isMobile ? '100%' : 260 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
           <div className="section-head"><div><div className="section-title">Weekly Usage</div><div className="section-desc">Requests per day</div></div></div>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={barData} barSize={18}>
@@ -134,9 +144,9 @@ export default function Dashboard() {
       </div>
 
       {/* Bottom row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 16 }}>
         {/* Quick actions */}
-        <motion.div className="card" style={{ padding: 22 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+        <motion.div className="card" style={{ padding: isMobile ? 16 : 22 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
           <div className="section-title" style={{ marginBottom: 16 }}><Zap size={15} color="var(--accent)" /> Quick Actions</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {quickActions.map(({ label, icon: Icon, path, color }, i) => (
@@ -155,7 +165,7 @@ export default function Dashboard() {
         </motion.div>
 
         {/* KPIs */}
-        <motion.div className="card" style={{ padding: 22 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
+        <motion.div className="card" style={{ padding: isMobile ? 16 : 22 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
           <div className="section-head">
             <div className="section-title"><Activity size={15} color="var(--accent)" /> Key Metrics</div>
             <button className="btn-ghost" onClick={() => navigate('/analytics')} style={{ fontSize: 12 }}>View all</button>
@@ -192,7 +202,7 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Recent data */}
-        <motion.div className="card" style={{ padding: 22 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+        <motion.div className="card" style={{ padding: isMobile ? 16 : 22 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
           <div className="section-head">
             <div className="section-title"><Clock size={15} color="var(--accent)" /> Recent Data</div>
             <button className="btn-ghost" onClick={() => navigate('/data')} style={{ fontSize: 12 }}>View all</button>

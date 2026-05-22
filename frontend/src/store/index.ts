@@ -27,6 +27,7 @@ interface AppStore {
   // UI
   sidebarOpen:   boolean
   toggleSidebar: () => void
+  setSidebarOpen:(open: boolean) => void
 
   // Alerts
   unreadAlerts:    number
@@ -78,6 +79,7 @@ export const useStore = create<AppStore>((set, get) => ({
   // ── UI ──────────────────────────────────────────────────
   sidebarOpen:   true,
   toggleSidebar: () => set(s => ({ sidebarOpen: !s.sidebarOpen })),
+  setSidebarOpen:(open) => set({ sidebarOpen: open }),
 
   // ── Alerts ──────────────────────────────────────────────
   unreadAlerts:    0,

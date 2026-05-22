@@ -7,7 +7,7 @@ import {
   ChevronRight, Zap, Activity
 } from 'lucide-react'
 import clsx from 'clsx'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { analyticsAPI } from '../../services/api'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 
@@ -47,9 +47,19 @@ const NAV = [
 ]
 
 export default function AppLayout() {
-  const { user, logout, sidebarOpen, toggleSidebar, unreadAlerts, setUnreadAlerts } = useStore()
+  const { user, logout, sidebarOpen, toggleSidebar, setSidebarOpen, unreadAlerts, setUnreadAlerts } = useStore()
   const navigate = useNavigate()
   const location = useLocation()
+
+  const [width, setWidth] = useState(window.innerWidth)
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isMobile = width < 1024
 
   useEffect(() => {
     analyticsAPI.dashboard()
@@ -57,19 +67,48 @@ export default function AppLayout() {
       .catch(() => {})
   }, [])
 
+  // Auto-close the drawer on mobile when the route changes.
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      setSidebarOpen(false)
+    }
+  }, [isMobile, location.pathname, sidebarOpen, setSidebarOpen])
+
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-base)' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-base)', position: 'relative' }}>
+
+
+      {/* ── Mobile Backdrop ── */}
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={toggleSidebar}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(5, 7, 16, 0.4)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 140,
+            transition: 'opacity 0.25s ease',
+          }}
+        />
+      )}
 
       {/* ── Sidebar ── */}
       <aside style={{
-        width: sidebarOpen ? 220 : 60,
+        width: isMobile ? 240 : (sidebarOpen ? 220 : 60),
+        position: isMobile ? 'fixed' : 'relative',
+        left: isMobile ? (sidebarOpen ? 0 : -240) : 0,
+        top: 0,
+        bottom: 0,
+        zIndex: 150,
+        boxShadow: isMobile && sidebarOpen ? '5px 0 25px rgba(0,0,0,0.5)' : 'none',
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
         borderRight: '1px solid var(--glass-border)',
-        background: 'rgba(12,14,26,0.95)',
+        background: 'rgba(12,14,26,0.98)',
         backdropFilter: 'blur(20px)',
-        transition: 'width 0.25s ease',
+        transition: 'width 0.25s ease, left 0.25s ease',
         overflow: 'hidden',
       }}>
 
@@ -91,7 +130,7 @@ export default function AppLayout() {
           >
             <Zap size={15} color="#fff" />
           </motion.div>
-          {sidebarOpen && (
+          {(sidebarOpen || isMobile) && (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -113,7 +152,7 @@ export default function AppLayout() {
           <nav style={{ flex: 1, overflowY: 'auto', padding: '10px 8px' }}>
             {NAV.map(({ group, items }) => (
               <div key={group} style={{ marginBottom: 4 }}>
-                {sidebarOpen && (
+                {(sidebarOpen || isMobile) && (
                   <div style={{
                     fontSize: 10, fontWeight: 600, color: 'var(--text-dim)',
                     textTransform: 'uppercase', letterSpacing: '0.08em',
@@ -122,18 +161,19 @@ export default function AppLayout() {
                     {group}
                   </div>
                 )}
-                {!sidebarOpen && group !== 'Overview' && (
+                {!(sidebarOpen || isMobile) && group !== 'Overview' && (
                   <div style={{ borderTop: '1px solid var(--glass-border)', margin: '8px 4px' }} />
                 )}
                 {items.map(({ path, label, icon: Icon }) => {
                   const active = location.pathname === path
+                  const showText = sidebarOpen || isMobile
                   return (
                     <button
                       key={path}
                       onClick={() => navigate(path)}
-                      title={!sidebarOpen ? label : undefined}
+                      title={!showText ? label : undefined}
                       className={clsx('nav-item', active && 'active')}
-                      style={{ width: '100%', justifyContent: sidebarOpen ? 'flex-start' : 'center', position: 'relative' }}
+                      style={{ width: '100%', justifyContent: showText ? 'flex-start' : 'center', position: 'relative' }}
                     >
                       {active && (
                         <motion.span
@@ -147,7 +187,7 @@ export default function AppLayout() {
                         />
                       )}
                       <Icon size={16} className="nav-icon" />
-                      {sidebarOpen && (
+                      {showText && (
                         <>
                           <span style={{ flex: 1, textAlign: 'left' }}>{label}</span>
                           {active && <ChevronRight size={13} style={{ opacity: 0.4 }} />}
@@ -167,7 +207,7 @@ export default function AppLayout() {
             display: 'flex', alignItems: 'center', gap: 9,
             padding: '8px 10px', borderRadius: 10,
             cursor: 'pointer', transition: 'background 0.15s',
-            justifyContent: sidebarOpen ? 'flex-start' : 'center',
+            justifyContent: (sidebarOpen || isMobile) ? 'flex-start' : 'center',
           }}
             onMouseEnter={e => (e.currentTarget.style.background = 'var(--glass-hover)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
@@ -181,7 +221,7 @@ export default function AppLayout() {
             }}>
               {user?.username?.[0]?.toUpperCase()}
             </div>
-            {sidebarOpen && (
+            {(sidebarOpen || isMobile) && (
               <>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -213,7 +253,7 @@ export default function AppLayout() {
         <header style={{
           height: 60, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 24px',
+          padding: isMobile ? '0 16px' : '0 24px',
           borderBottom: '1px solid var(--glass-border)',
           background: 'rgba(12,14,26,0.7)',
           backdropFilter: 'blur(20px)',
@@ -222,10 +262,12 @@ export default function AppLayout() {
             <button className="btn-ghost" onClick={toggleSidebar} style={{ padding: '7px 9px' }}>
               <Menu size={16} />
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success)', display: 'inline-block', animation: 'pulse-dot 2s infinite' }} />
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>All systems operational</span>
-            </div>
+            {!isMobile && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success)', display: 'inline-block', animation: 'pulse-dot 2s infinite' }} />
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>All systems operational</span>
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -269,9 +311,11 @@ export default function AppLayout() {
               }}>
                 {user?.username?.[0]?.toUpperCase()}
               </div>
-              <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text-primary)' }}>
-                {user?.username}
-              </span>
+              {!isMobile && (
+                <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text-primary)' }}>
+                  {user?.username}
+                </span>
+              )}
             </div>
           </div>
         </header>

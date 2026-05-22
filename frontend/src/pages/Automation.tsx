@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { agentsAPI } from '../services/api'
 import toast from 'react-hot-toast'
-import { Bot, Play, Loader2, CheckCircle, ChevronDown, ChevronRight, Trash2, Zap, Cpu, Search, BarChart2, Megaphone, DollarSign, FileText, Lightbulb } from 'lucide-react'
+import { Bot, Play, Loader2, CheckCircle, ChevronDown, ChevronRight, Trash2, Zap, Cpu, Search, BarChart2, Megaphone, DollarSign, FileText, Lightbulb, Menu, X } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import clsx from 'clsx'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const AGENT_META: Record<string, { icon: any; color: string }> = {
@@ -38,6 +37,16 @@ export default function Automation() {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({ agent_type: 'data', goal: '', mode: 'single' })
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set())
+  const [showTasksMobile, setShowTasksMobile] = useState(false)
+  const [width, setWidth] = useState(window.innerWidth)
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isMobile = width < 1024
 
   useEffect(() => {
     agentsAPI.types().then(r => setAgentTypes(r.data)).catch(() => {})
@@ -77,7 +86,9 @@ export default function Automation() {
 
   const openTask = async (task: any) => {
     const res = await agentsAPI.getTask(task.id)
-    setSelectedTask(res.data); setExpandedSteps(new Set())
+    setSelectedTask(res.data)
+    setExpandedSteps(new Set())
+    setShowTasksMobile(false)
   }
 
   const deleteTask = async (id: string) => {
@@ -90,137 +101,182 @@ export default function Automation() {
 
   const ss = (s: string) => STATUS_STYLES[s] || { bg: 'rgba(255,255,255,0.06)', text: 'var(--text-muted)', dot: 'var(--text-muted)' }
 
-  return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 60px)', overflow: 'hidden' }}>
-
-      {/* ── Sidebar ── */}
-      <div style={{ width: 288, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--glass-border)', background: 'rgba(10,12,22,0.7)', backdropFilter: 'blur(16px)' }}>
-        <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--glass-border)' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Recent Tasks</div>
-        </div>
-
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 8px' }}>
-          {tasks.length === 0 ? (
-            <div className="empty" style={{ padding: '40px 10px' }}>
-              <div className="empty-icon"><Bot size={18} /></div>
-              <div className="empty-title">No tasks yet</div>
-              <div className="empty-desc">Launch an agent to get started</div>
-            </div>
-          ) : (
-            <AnimatePresence initial={false}>
-              {tasks.map((t, i) => {
-                const meta = AGENT_META[t.agent_type] || AGENT_META.data
-                const style = ss(t.status)
-                const isSelected = selectedTask?.id === t.id
-                return (
-                  <motion.div
-                    key={t.id}
-                    onClick={() => openTask(t)}
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -12 }}
-                    transition={{ delay: i * 0.04, duration: 0.25 }}
-                    whileHover={{ x: 2 } as any}
-                    style={{
-                      padding: '12px 13px', borderRadius: 12, marginBottom: 6, cursor: 'pointer',
-                      background: isSelected ? 'var(--accent-dim)' : 'var(--glass-bg)',
-                      border: `1px solid ${isSelected ? 'rgba(79,139,255,0.3)' : 'var(--glass-border)'}`,
-                      transition: 'border-color 0.15s, background 0.15s',
-                      position: 'relative',
-                    }}
-                  >
-                    {/* Header row */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 7 }}>
-                      <div style={{
-                        width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                        background: `${meta.color}15`, border: `1px solid ${meta.color}30`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}>
-                        <meta.icon size={16} color={meta.color} />
-                      </div>
-                      {/* Status badge */}
-                      <span style={{
-                        display: 'flex', alignItems: 'center', gap: 5, padding: '2px 9px', borderRadius: 20,
-                        background: style.bg, fontSize: 10.5, fontWeight: 600, color: style.text,
-                        textTransform: 'capitalize', letterSpacing: '0.03em',
-                      }}>
-                        <motion.span
-                          animate={{ scale: t.status === 'running' ? [1, 1.4, 1] : 1 }}
-                          transition={{ duration: 1.2, repeat: t.status === 'running' ? Infinity : 0 }}
-                          style={{ width: 5, height: 5, borderRadius: '50%', background: style.dot }}
-                        />
-                        {t.status}
-                      </span>
-                      <button
-                        onClick={e => { e.stopPropagation(); deleteTask(t.id) }}
-                        style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', padding: 3, borderRadius: 5, opacity: 0, transition: 'opacity 0.15s' }}
-                        className="del-btn"
-                      >
-                        <Trash2 size={11} />
-                      </button>
-                    </div>
-                    {/* Goal text */}
-                    <p style={{ fontSize: 12.5, color: 'var(--text-primary)', lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {t.goal}
-                    </p>
-                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 5 }}>{t.agent_name}</p>
-                  </motion.div>
-                )
-              })}
-            </AnimatePresence>
-          )}
-        </div>
+  const TaskList = () => (
+    <div style={{
+      width: isMobile ? '100%' : 288,
+      flexShrink: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      borderRight: isMobile ? 'none' : '1px solid var(--glass-border)',
+      background: 'rgba(10,12,22,0.97)',
+      backdropFilter: 'blur(16px)',
+      height: '100%',
+      overflowY: 'auto',
+    }}>
+      <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Recent Tasks</div>
+        {isMobile && (
+          <button className="btn-ghost" style={{ padding: '6px 8px' }} onClick={() => setShowTasksMobile(false)}>
+            <X size={15} />
+          </button>
+        )}
       </div>
 
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 8px' }}>
+        {tasks.length === 0 ? (
+          <div className="empty" style={{ padding: '40px 10px' }}>
+            <div className="empty-icon"><Bot size={18} /></div>
+            <div className="empty-title">No tasks yet</div>
+            <div className="empty-desc">Launch an agent to get started</div>
+          </div>
+        ) : (
+          <AnimatePresence initial={false}>
+            {tasks.map((t, i) => {
+              const meta = AGENT_META[t.agent_type] || AGENT_META.data
+              const style = ss(t.status)
+              const isSelected = selectedTask?.id === t.id
+              return (
+                <motion.div
+                  key={t.id}
+                  onClick={() => openTask(t)}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -12 }}
+                  transition={{ delay: i * 0.04, duration: 0.25 }}
+                  whileHover={{ x: 2 } as any}
+                  style={{
+                    padding: '12px 13px', borderRadius: 12, marginBottom: 6, cursor: 'pointer',
+                    background: isSelected ? 'var(--accent-dim)' : 'var(--glass-bg)',
+                    border: `1px solid ${isSelected ? 'rgba(79,139,255,0.3)' : 'var(--glass-border)'}`,
+                    transition: 'border-color 0.15s, background 0.15s',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 7 }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                      background: `${meta.color}15`, border: `1px solid ${meta.color}30`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      <meta.icon size={16} color={meta.color} />
+                    </div>
+                    <span style={{
+                      display: 'flex', alignItems: 'center', gap: 5, padding: '2px 9px', borderRadius: 20,
+                      background: style.bg, fontSize: 10.5, fontWeight: 600, color: style.text,
+                      textTransform: 'capitalize', letterSpacing: '0.03em',
+                    }}>
+                      <motion.span
+                        animate={{ scale: t.status === 'running' ? [1, 1.4, 1] : 1 }}
+                        transition={{ duration: 1.2, repeat: t.status === 'running' ? Infinity : 0 }}
+                        style={{ width: 5, height: 5, borderRadius: '50%', background: style.dot }}
+                      />
+                      {t.status}
+                    </span>
+                    <button
+                      onClick={e => { e.stopPropagation(); deleteTask(t.id) }}
+                      style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', padding: 3, borderRadius: 5, opacity: 0, transition: 'opacity 0.15s' }}
+                      className="del-btn"
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 12.5, color: 'var(--text-primary)', lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {t.goal}
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 5 }}>{t.agent_name}</p>
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+        )}
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={{ display: 'flex', height: 'calc(100vh - 60px)', overflow: 'hidden', position: 'relative' }}>
+
+      {/* Mobile backdrop */}
+      {isMobile && showTasksMobile && (
+        <div
+          onClick={() => setShowTasksMobile(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(5,7,16,0.5)', backdropFilter: 'blur(4px)', zIndex: 140 }}
+        />
+      )}
+
+      {/* Sidebar – fixed drawer on mobile */}
+      {!isMobile ? (
+        <TaskList />
+      ) : (
+        <div style={{
+          position: 'fixed', top: 60, left: 0, bottom: 0,
+          width: 300, zIndex: 150,
+          transform: showTasksMobile ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
+          boxShadow: showTasksMobile ? '6px 0 30px rgba(0,0,0,0.5)' : 'none',
+        }}>
+          <TaskList />
+        </div>
+      )}
+
       {/* ── Main ── */}
-      <div style={{ flex: 1, overflow: 'auto', padding: 28, background: 'var(--bg-base)' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: isMobile ? 16 : 28, background: 'var(--bg-base)', minWidth: 0 }}>
+
+        {/* Mobile top-bar */}
+        {isMobile && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <button className="btn-ghost" style={{ padding: '7px 9px' }} onClick={() => setShowTasksMobile(true)}>
+              <Menu size={16} />
+            </button>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>Recent Tasks</span>
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           {selectedTask ? (
             <motion.div key={selectedTask.id} style={{ maxWidth: 760 }} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 24 }}>
                 <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                   {(() => {
                     const Icon = AGENT_META[selectedTask.agent_type]?.icon || Bot;
                     const color = AGENT_META[selectedTask.agent_type]?.color || 'var(--accent)';
                     return (
-                      <div style={{ 
+                      <div style={{
                         width: 48, height: 48, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: `${color}15`, border: `1px solid ${color}30`, boxShadow: `0 4px 12px ${color}10`, flexShrink: 0
+                        background: `${color}15`, border: `1px solid ${color}30`, flexShrink: 0
                       }}>
                         <Icon size={24} color={color} />
                       </div>
                     );
                   })()}
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-                      <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>{selectedTask.agent_name}</h2>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                      <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: 'var(--text-primary)' }}>{selectedTask.agent_name}</h2>
                       <span style={{
                         display: 'flex', alignItems: 'center', gap: 5, padding: '4px 12px', borderRadius: 20, fontSize: 11.5, fontWeight: 600,
-                        background: ss(selectedTask.status).bg, color: ss(selectedTask.status).text, textTransform: 'capitalize', border: `1px solid ${ss(selectedTask.status).text}20`
+                        background: ss(selectedTask.status).bg, color: ss(selectedTask.status).text, textTransform: 'capitalize',
                       }}>
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: ss(selectedTask.status).dot, boxShadow: `0 0 8px ${ss(selectedTask.status).dot}` }} />
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: ss(selectedTask.status).dot }} />
                         {selectedTask.status}
                       </span>
                     </div>
                     <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{selectedTask.goal}</p>
                   </div>
                 </div>
-                <motion.button className="btn-ghost" onClick={() => setSelectedTask(null)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>← Back</motion.button>
+                <motion.button className="btn-ghost" onClick={() => setSelectedTask(null)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>Back</motion.button>
               </div>
 
-              {/* Steps */}
               {selectedTask.steps?.length > 0 && (
-                <motion.div className="card" style={{ padding: 22, marginBottom: 16 }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                <motion.div className="card" style={{ padding: isMobile ? 16 : 22, marginBottom: 16 }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                   <div className="section-title" style={{ marginBottom: 16 }}><Zap size={14} color="var(--accent)" /> Execution Steps</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {selectedTask.steps.map((step: any, i: number) => (
                       <motion.div key={i} style={{ border: '1px solid var(--glass-border)', borderRadius: 10, overflow: 'hidden' }} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.06 }}>
                         <button onClick={() => setExpandedSteps(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n })}
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
                           <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--accent-dim)', border: '1px solid rgba(79,139,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>{step.step}</span>
-                          <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text-primary)' }}>{step.action}</p>
-                            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{step.agent} · {new Date(step.timestamp).toLocaleTimeString()}</p>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{step.action}</p>
+                            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{step.agent} - {new Date(step.timestamp).toLocaleTimeString()}</p>
                           </div>
                           <CheckCircle size={14} color="var(--success)" />
                           {expandedSteps.has(i) ? <ChevronDown size={14} color="var(--text-muted)" /> : <ChevronRight size={14} color="var(--text-muted)" />}
@@ -239,10 +295,9 @@ export default function Automation() {
                 </motion.div>
               )}
 
-              {/* Final output */}
               {selectedTask.final_output && (
-                <motion.div className="card" style={{ padding: 22 }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                  <div className="section-title" style={{ marginBottom: 16 }}>📋 Final Output</div>
+                <motion.div className="card" style={{ padding: isMobile ? 16 : 22 }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                  <div className="section-title" style={{ marginBottom: 16 }}>Final Output</div>
                   <div className="markdown-content"><ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedTask.final_output}</ReactMarkdown></div>
                 </motion.div>
               )}
@@ -251,7 +306,7 @@ export default function Automation() {
                 <motion.div className="card" style={{ padding: 40, textAlign: 'center' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   <Loader2 size={28} className="spin" color="var(--accent)" style={{ margin: '0 auto 12px' }} />
                   <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 4 }}>Agent working...</p>
-                  <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Usually 30–60 seconds</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Usually 30-60 seconds</p>
                 </motion.div>
               )}
             </motion.div>
@@ -259,7 +314,7 @@ export default function Automation() {
           ) : (
             <motion.div key="form" style={{ maxWidth: 680 }} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
               <div style={{ marginBottom: 28 }}>
-                <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>AI Agent System</h1>
+                <h1 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>AI Agent System</h1>
                 <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Deploy intelligent agents to automate complex business analysis</p>
               </div>
 
@@ -267,7 +322,7 @@ export default function Automation() {
               <div style={{ display: 'flex', gap: 8, marginBottom: 24, padding: 4, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 12, width: 'fit-content' }}>
                 {[{ id: 'single', label: 'Single Agent', icon: Bot }, { id: 'multi', label: 'Multi-Agent', icon: Cpu }].map(m => (
                   <motion.button key={m.id} onClick={() => setForm(f => ({ ...f, mode: m.id }))}
-                    style={{ padding: '8px 20px', borderRadius: 9, fontSize: 13, fontWeight: 500, border: 'none', cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center', gap: 6 }}
+                    style={{ padding: isMobile ? '7px 14px' : '8px 20px', borderRadius: 9, fontSize: 13, fontWeight: 500, border: 'none', cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center', gap: 6 }}
                     whileTap={{ scale: 0.97 }}>
                     {form.mode === m.id && (
                       <motion.div layoutId="modeTab" style={{ position: 'absolute', inset: 0, background: 'var(--accent)', borderRadius: 9 }} transition={{ type: 'spring', stiffness: 400, damping: 30 }} />
@@ -284,7 +339,7 @@ export default function Automation() {
               <AnimatePresence>
                 {form.mode === 'single' && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                    style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
+                    style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
                     {Object.entries(agentTypes).map(([key, agent]: any, i) => {
                       const meta = AGENT_META[key] || AGENT_META.data
                       const active = form.agent_type === key
@@ -293,12 +348,12 @@ export default function Automation() {
                           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                           whileHover={{ scale: 1.02, boxShadow: `0 6px 20px ${meta.color}15` }}
                           whileTap={{ scale: 0.98 }}
-                          style={{ padding: '16px', borderRadius: 14, cursor: 'pointer', border: `1px solid ${active ? meta.color + '50' : 'var(--glass-border)'}`, background: active ? `${meta.color}08` : 'var(--glass-bg)', transition: 'background 0.2s' }}>
-                          <div style={{ marginBottom: 14, width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? `${meta.color}20` : `${meta.color}10`, border: `1px solid ${active ? meta.color + '40' : meta.color + '20'}` }}>
-                            <meta.icon size={20} color={active ? meta.color : meta.color + 'dd'} />
+                          style={{ padding: isMobile ? '12px' : '16px', borderRadius: 14, cursor: 'pointer', border: `1px solid ${active ? meta.color + '50' : 'var(--glass-border)'}`, background: active ? `${meta.color}08` : 'var(--glass-bg)', transition: 'background 0.2s' }}>
+                          <div style={{ marginBottom: 10, width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? `${meta.color}20` : `${meta.color}10`, border: `1px solid ${active ? meta.color + '40' : meta.color + '20'}` }}>
+                            <meta.icon size={18} color={active ? meta.color : meta.color + 'dd'} />
                           </div>
-                          <div style={{ fontSize: 13.5, fontWeight: 600, color: active ? meta.color : 'var(--text-primary)', marginBottom: 4 }}>{agent.name}</div>
-                          <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>{agent.description?.slice(0, 60)}…</div>
+                          <div style={{ fontSize: isMobile ? 12.5 : 13.5, fontWeight: 600, color: active ? meta.color : 'var(--text-primary)', marginBottom: 4 }}>{agent.name}</div>
+                          {!isMobile && <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>{agent.description?.slice(0, 60)}...</div>}
                         </motion.div>
                       )
                     })}
@@ -309,7 +364,7 @@ export default function Automation() {
               {form.mode === 'multi' && (
                 <motion.div className="card" style={{ padding: '14px 18px', marginBottom: 20, borderColor: 'rgba(79,139,255,0.2)' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(34, 211, 165, 0.1)', border: '1px solid rgba(34, 211, 165, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(34,211,165,0.1)', border: '1px solid rgba(34,211,165,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <Cpu size={18} color="#22d3a5" />
                     </div>
                     <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}><strong>Orchestration:</strong> Automatically selects the best combination of agents and coordinates their work for complex, multi-step goals.</p>
@@ -323,7 +378,7 @@ export default function Automation() {
                 <textarea className="input" rows={4} placeholder="Describe what you want the agent to accomplish..." value={form.goal} onChange={e => setForm(f => ({ ...f, goal: e.target.value }))} style={{ resize: 'none' }} />
               </div>
 
-              <motion.button className="btn-primary" onClick={runAgent} disabled={loading || !form.goal.trim()} style={{ marginBottom: 28 }} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+              <motion.button className="btn-primary" onClick={runAgent} disabled={loading || !form.goal.trim()} style={{ marginBottom: 28, width: isMobile ? '100%' : 'auto', justifyContent: 'center' }} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 {loading ? <><Loader2 size={14} className="spin" /> Launching...</> : <><Play size={14} /> Launch Agent</>}
               </motion.button>
 
