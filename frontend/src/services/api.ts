@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -66,7 +66,8 @@ export const chatAPI = {
   sendMessage: (data: any) => api.post('/chat/message', data),
   streamMessage: (data: any) => {
     const token = localStorage.getItem('token')
-    return fetch('/api/chat/stream-message', {
+    const baseUrl = import.meta.env.VITE_API_URL || '/api'
+    return fetch(`${baseUrl}/chat/stream-message`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
