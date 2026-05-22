@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
 
-    # Database
-    DATABASE_URL: str = "sqlite:///./data/enterprise_ai.db"
+    # Database (Read from .env)
+    DATABASE_URL: str = "postgresql://postgres:dummy@db.supabase.co:5432/postgres"
 
     # AI APIs (Free Tiers)
     GROQ_API_KEY: str = ""
@@ -22,9 +22,8 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-1.5-flash" # Options: gemini-1.5-flash, gemini-1.5-pro
     HF_TOKEN: str = ""
 
-    # Vector DB
-    CHROMA_PERSIST_DIR: str = "./data/vectors"
-    CHROMA_COLLECTION_NAME: str = "enterprise_docs"
+    # Vector DB (Supabase)
+    VECS_COLLECTION_NAME: str = "enterprise_docs"
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
 
     # NLP Models
@@ -61,6 +60,5 @@ settings = Settings()
 
 # Ensure directories exist
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-os.makedirs(settings.CHROMA_PERSIST_DIR, exist_ok=True)
 os.makedirs("./data/models", exist_ok=True)
 os.makedirs("./data", exist_ok=True)

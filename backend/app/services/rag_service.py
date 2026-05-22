@@ -1,6 +1,6 @@
 """
 RAG Service - Document indexing and semantic retrieval
-Uses: ChromaDB (free, local) + sentence-transformers (free, local)
+Uses: Supabase (pgvector) via vecs + sentence-transformers
 """
 import os
 import uuid
@@ -8,11 +8,10 @@ from typing import List, Dict, Optional
 from app.config import settings
 
 try:
-    import chromadb
-    from chromadb.config import Settings as ChromaSettings
-    CHROMA_AVAILABLE = True
+    import vecs
+    VECS_AVAILABLE = True
 except ImportError:
-    CHROMA_AVAILABLE = False
+    VECS_AVAILABLE = False
 
 try:
     from sentence_transformers import SentenceTransformer
@@ -32,13 +31,13 @@ class RAGService:
         if self._initialized:
             return
         try:
-            if CHROMA_AVAILABLE:
-                self.client = chromadb.PersistentClient(
-                    path=settings.CHROMA_PERSIST_DIR,
-                )
+            if VECS_AVAILABLE:
+                # Initialize vecs client with PostgreSQL connection
+                self.client = vecs.create_client(settings.DATABASE_URL)
+                # Create or get the collection. MiniLM-L6-v2 uses 384 dimensions.
                 self.collection = self.client.get_or_create_collection(
-                    name=settings.CHROMA_COLLECTION_NAME,
-                    metadata={"hnsw:space": "cosine"},
+                    name=settings.VECS_COLLECTION_NAME,
+                    dimension=384
                 )
             if ST_AVAILABLE:
                 self.encoder = SentenceTransformer(settings.EMBEDDING_MODEL)
@@ -48,7 +47,7 @@ class RAGService:
             self._initialized = True
 
     async def index_document(self, file_path: str, source_type: str, doc_id: str) -> List[str]:
-        """Extract text, chunk, embed and store in ChromaDB"""
+        """Extract text, chunk, embed and store in Supabase (pgvector)"""
         self._ensure_init()
         if not self.collection or not self.encoder:
             return []
@@ -68,8 +67,17 @@ class RAGService:
             batch = chunks[i:i + batch_size]
             ids = [f"{doc_id}_{i+j}" for j, _ in enumerate(batch)]
             embeddings = self.encoder.encode(batch).tolist()
-            metadatas = [{"doc_id": doc_id, "chunk_index": i+j, "source": os.path.basename(file_path)} for j in range(len(batch))]
-            self.collection.add(ids=ids, embeddings=embeddings, documents=batch, metadatas=metadatas)
+            
+            records = []
+            for j, chunk_text in enumerate(batch):
+                records.append((
+                    ids[j],
+                    embeddings[j],
+                    {"text": chunk_text, "doc_id": doc_id, "chunk_index": i+j, "source": os.path.basename(file_path)}
+                ))
+            
+            # Upsert into vecs collection
+            self.collection.upsert(records=records)
             chunk_ids.extend(ids)
 
         return chunk_ids
@@ -81,28 +89,33 @@ class RAGService:
             return {"chunks": [], "query": query}
 
         try:
-            query_embedding = self.encoder.encode([query]).tolist()
-            where = {"doc_id": {"$in": doc_ids}} if doc_ids else None
+            query_embedding = self.encoder.encode([query]).tolist()[0]
+            filters = {"doc_id": {"$in": doc_ids}} if doc_ids else None
 
+            # vecs returns list of tuples: (id, distance, metadata) when include_value and include_metadata are True
             results = self.collection.query(
-                query_embeddings=query_embedding,
-                n_results=min(top_k, self.collection.count() or 1),
-                where=where,
-                include=["documents", "metadatas", "distances"],
+                data=query_embedding,
+                limit=top_k,
+                filters=filters,
+                include_value=True,
+                include_metadata=True,
             )
 
             chunks = []
-            if results["documents"] and results["documents"][0]:
-                for i, doc in enumerate(results["documents"][0]):
-                    meta = results["metadatas"][0][i] if results["metadatas"] else {}
-                    dist = results["distances"][0][i] if results["distances"] else 1.0
-                    chunks.append({
-                        "text": doc,
-                        "source": meta.get("source", "unknown"),
-                        "doc_id": meta.get("doc_id"),
-                        "chunk_index": meta.get("chunk_index", 0),
-                        "score": round(1 - dist, 4),
-                    })
+            for res in results:
+                # Handle varying tuple unpack depending on vecs version behavior
+                if len(res) == 3:
+                    chunk_id, dist, meta = res
+                else:
+                    chunk_id, dist, meta = res[0], 1.0, {} # Fallback
+                
+                chunks.append({
+                    "text": meta.get("text", ""),
+                    "source": meta.get("source", "unknown"),
+                    "doc_id": meta.get("doc_id"),
+                    "chunk_index": meta.get("chunk_index", 0),
+                    "score": round(1 - dist, 4), # Convert distance to similarity score
+                })
 
             return {"chunks": chunks, "query": query}
         except Exception as e:
@@ -115,9 +128,7 @@ class RAGService:
         if not self.collection:
             return
         try:
-            results = self.collection.get(where={"doc_id": doc_id})
-            if results["ids"]:
-                self.collection.delete(ids=results["ids"])
+            self.collection.delete(filters={"doc_id": {"$eq": doc_id}})
         except Exception as e:
             print(f"Delete error: {e}")
 
@@ -196,6 +207,8 @@ class RAGService:
         if not self.collection:
             return {"total_chunks": 0, "available": False}
         try:
-            return {"total_chunks": self.collection.count(), "available": True}
+            # vecs collection count is unfortunately not exposed via a simple .count() or len()
+            # but we can try to return available status
+            return {"total_chunks": "N/A", "available": True}
         except Exception:
             return {"total_chunks": 0, "available": False}

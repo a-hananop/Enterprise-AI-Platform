@@ -270,3 +270,6 @@ MIT License — Free for personal and commercial use.
 
 ---
 **Built with ❤️ using FastAPI, React, Groq, ChromaDB, HuggingFace, XGBoost, and scikit-learn**
+py -3.11 -m venv venv 
+.\venv\Scripts\activate 
+python main.py
