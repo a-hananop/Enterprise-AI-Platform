@@ -198,12 +198,20 @@ function BrainCore() {
 }
 
 export default function AIBrain() {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024
+
   return (
     <Canvas
       style={{ width: '100%', height: '100%', background: 'transparent' }}
       camera={{ position: [0, 0, 4.5], fov: 45 }}
-      gl={{ alpha: true, antialias: true }}
-      dpr={[1, 2]}
+      gl={{ 
+        alpha: true, 
+        antialias: !isMobile, // CRITICAL FIX FOR MALI GPUs: antialias + alpha causes smearing on Android
+        powerPreference: 'high-performance',
+        stencil: false,
+        preserveDrawingBuffer: false
+      }}
+      dpr={isMobile ? Math.min(window.devicePixelRatio, 1.5) : [1, 2]} // Cap DPR on mobile to prevent GPU thermal throttling
     >
       <ambientLight intensity={0.3} />
       <pointLight position={[4, 4, 4]} color="#4f8bff" intensity={6} />
