@@ -6,10 +6,9 @@ import { HardDrive, MessageCircle, TrendingUp, BarChart2, ArrowUpRight, ArrowDow
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { useSpring, animated } from '@react-spring/web'
 import { motion } from 'framer-motion'
-import AIBrainCSS from '../components/3d/AIBrainCSS'
 
-// WebGL AIBrain only on desktop — mobile uses AIBrainCSS to avoid GPU conflicts
 const AIBrain = lazy(() => import('../components/3d/AIBrain'))
+
 
 const sparkData = [
   { m: 'Sep', v: 3200 }, { m: 'Oct', v: 4100 }, { m: 'Nov', v: 3800 },
@@ -78,9 +77,9 @@ export default function Dashboard() {
           position: 'relative',
           overflow: 'hidden',
         }}>
-          {/* Background glow blobs — plain divs, no animation, no GPU layer */}
-          <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(79,139,255,0.12)', filter: 'blur(40px)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', bottom: -30, left: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(167,139,250,0.12)', filter: 'blur(30px)', pointerEvents: 'none' }} />
+          {/* Background glow blobs — radial-gradient only, NO filter:blur (blur creates GPU compositor layers) */}
+          <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(79,139,255,0.18), transparent 70%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: -30, left: -20, width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,139,250,0.15), transparent 70%)', pointerEvents: 'none' }} />
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
             <div style={{ flex: 1 }}>

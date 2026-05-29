@@ -444,20 +444,18 @@ export default function AppLayout() {
           </div>
         </header>
 
-        {/* Page — animated transitions */}
+        {/* Page — opacity-only transitions (no y-transforms to avoid WebGL GPU layer conflicts) */}
         <AnimatePresence mode="wait">
           <motion.main
             key={location.pathname}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: isMobile ? 0 : 0.18 }}
             style={{ 
               flex: 1, 
               overflowY: 'auto', 
               overflowX: 'hidden',
-              transform: 'translateZ(0)', // Force GPU layer to prevent mobile tearing
-              WebkitTransform: 'translateZ(0)',
               backgroundColor: 'var(--bg-base)'
             }}
           >
