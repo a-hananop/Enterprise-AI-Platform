@@ -6,7 +6,7 @@ import { HardDrive, MessageCircle, TrendingUp, BarChart2, ArrowUpRight, ArrowDow
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { useSpring, animated } from '@react-spring/web'
 import { motion } from 'framer-motion'
-import AIBrainCSS from '../components/3d/AIBrainCSS'
+import AIBrainMobile from '../components/3d/AIBrainMobile'
 
 const AIBrain = lazy(() => import('../components/3d/AIBrain'))
 
@@ -77,14 +77,9 @@ export default function Dashboard() {
           padding: '24px 20px 20px',
           position: 'relative',
           overflow: 'hidden',
-          // Force dedicated compositor layer to fix Mali GPU scroll smearing
-          transform: 'translateZ(0)',
-          WebkitBackfaceVisibility: 'hidden',
-          willChange: 'transform',
+          // Completely removed all translateZ/willChange to prevent Mali GPU texture corruption
         }}>
-          {/* Background glow blobs */}
-          <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(79,139,255,0.18), transparent 70%)', pointerEvents: 'none', transform: 'translateZ(0)' }} />
-          <div style={{ position: 'absolute', bottom: -30, left: -20, width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,139,250,0.15), transparent 70%)', pointerEvents: 'none', transform: 'translateZ(0)' }} />
+          {/* Background blobs completely removed on mobile to prevent GPU overdraw crash */}
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
             <div style={{ flex: 1 }}>
@@ -93,7 +88,8 @@ export default function Dashboard() {
               </div>
               <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: 4 }}>
                 {greeting},<br />
-                <span style={{ background: 'linear-gradient(90deg,#4f8bff,#a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                {/* Fallback to solid color for mobile to prevent WebkitBackgroundClip text texture bleeding */}
+                <span style={{ color: '#4f8bff' }}>
                   {user?.full_name?.split(' ')[0] || user?.username}
                 </span>
               </h1>
@@ -102,11 +98,10 @@ export default function Dashboard() {
               </p>
             </div>
             {/* 
-              Ultimate Mobile Fix: Pure CSS AIBrain. 
-              WebGL is fundamentally bugged on Samsung Galaxy A05 (Mali GPU) when 
-              overlaid on gradients. Pure CSS animations are guaranteed to never smear. 
+              Canvas 2D fallback: absolutely safe on all GPUs.
+              CSS 3D (preserve-3d) and WebGL both trigger compositor crashes on this device.
             */}
-            <AIBrainCSS size={110} />
+            <AIBrainMobile />
           </div>
         </div>
 
