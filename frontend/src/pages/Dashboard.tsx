@@ -108,12 +108,11 @@ export default function Dashboard() {
 
         <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-          {/* ── Stat Cards 2x2 Grid — opacity-only fades, NO y/scale transforms ── */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1, duration: 0.4 }}>
+          {/* ── Stat Cards 2x2 Grid — Pure DOM elements (no framer-motion) to prevent Mali GPU texture bleeding ── */}
+          <div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {stats.map(({ label, value, icon: Icon, color, bg, change, up }, i) => (
-                <motion.div key={label}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 + i * 0.07, duration: 0.35 }}
+                <div key={label}
                   style={{
                     background: 'var(--glass-bg)',
                     border: '1px solid var(--glass-border)',
@@ -136,30 +135,29 @@ export default function Dashboard() {
                       <span>{change} this week</span>
                     </div>
                   )}
-                </motion.div>
+                </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
-          {/* ── Quick Actions — opacity-only ── */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25, duration: 0.4 }}>
+          {/* ── Quick Actions ── */}
+          <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Zap size={14} color="var(--accent)" /> Quick Actions
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
               {quickActions.map(({ label, icon: Icon, path, color, bg }, i) => (
-                <motion.button key={label}
+                <button key={label}
                   onClick={() => navigate(path)}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 + i * 0.06, duration: 0.3 }}
                   style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 14, padding: '14px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                   <div style={{ width: 38, height: 38, borderRadius: 11, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={17} color={color} />
                   </div>
                   <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-secondary)', textAlign: 'center', lineHeight: 1.3 }}>{label}</span>
-                </motion.button>
+                </button>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* ── Platform Activity Chart — opacity-only, chart animation disabled on mobile ── */}
           <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35, duration: 0.4 }}>
