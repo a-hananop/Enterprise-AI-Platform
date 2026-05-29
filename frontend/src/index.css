@@ -57,6 +57,17 @@
     }
   }
 
+  /* Override all rgba() glass variables with solid equivalents on mobile.
+     Mali GPU (Samsung A05) crashes when alpha-blending semi-transparent elements
+     inside scroll containers. Solid colors completely prevent this. */
+  @media (max-width: 1023px) {
+    :root {
+      --glass-bg:     #0e101a;
+      --glass-border: #1e2136;
+      --glass-hover:  #141728;
+    }
+  }
+
   /* ── Scrollbar ── */
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
