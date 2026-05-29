@@ -277,6 +277,8 @@ export default function AppLayout() {
           borderBottom: '1px solid var(--glass-border)',
           background: 'rgba(12,14,26,0.7)',
           backdropFilter: 'blur(20px)',
+          position: 'relative',
+          zIndex: 100,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 12, minWidth: 0 }}>
             <button className="btn-ghost" onClick={toggleSidebar} style={{ padding: '7px 9px' }}>
@@ -338,9 +340,11 @@ export default function AppLayout() {
                     transition={{ duration: 0.15 }}
                     style={{
                       position: 'absolute', top: 44, right: isMobile ? -50 : 0,
-                      width: isMobile ? 300 : 340, background: 'var(--bg-elevated)',
+                      width: isMobile ? 300 : 340, 
+                      background: 'rgba(16, 18, 32, 0.98)',
+                      backdropFilter: 'blur(20px)',
                       border: '1px solid var(--glass-border)', borderRadius: 12,
-                      boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 200,
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.8)', zIndex: 200,
                       overflow: 'hidden'
                     }}
                   >
