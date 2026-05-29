@@ -203,8 +203,8 @@ export default function LoginPage() {
                 <Zap size={18} color="#fff" />
               </motion.div>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Enterprise AI</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>Decision Intelligence Platform</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Nexus AI</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>Intelligence Platform</div>
               </div>
             </div>
 
@@ -294,7 +294,7 @@ export default function LoginPage() {
                   <Zap size={18} color="#fff" />
                 </motion.div>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Enterprise AI</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Nexus AI</div>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>Decision Intelligence Platform</div>
                 </div>
               </motion.div>

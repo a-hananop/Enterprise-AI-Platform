@@ -5,7 +5,7 @@ import os
 
 class Settings(BaseSettings):
     # App
-    APP_NAME: str = "Enterprise AI Decision Intelligence Platform"
+    APP_NAME: str = "Nexus AI Decision Intelligence Platform"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
     SECRET_KEY: str = "dev-secret-key-change-in-production-32chars!!"

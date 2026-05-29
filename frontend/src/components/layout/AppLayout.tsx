@@ -139,10 +139,10 @@ export default function AppLayout() {
               style={{ minWidth: 0 }}
             >
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
-                Enterprise AI
+                Nexus AI
               </div>
               <div style={{ fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                Decision Intelligence
+                Intelligence Platform
               </div>
             </motion.div>
           )}

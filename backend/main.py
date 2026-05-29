@@ -1,5 +1,5 @@
 """
-Enterprise AI Decision Intelligence Platform — Main Application
+Nexus AI Decision Intelligence Platform — Main Application
 """
 import os
 import sys

@@ -272,7 +272,7 @@ Provide clear, actionable insights. Use numbers and percentages where relevant."
 
 # ── Helpers ────────────────────────────────────────────────────
 def _build_system_prompt(context: str) -> str:
-    base = """You are an Enterprise AI Business Copilot. You help business professionals make data-driven decisions.
+    base = """You are a Nexus AI Business Copilot. You help business professionals make data-driven decisions.
 
 Your capabilities:
 - Analyze business data and documents

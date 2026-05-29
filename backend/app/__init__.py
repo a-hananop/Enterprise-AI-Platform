@@ -1,1 +1,1 @@
-# Enterprise AI Decision Intelligence Platform - Backend App
+# Nexus AI Decision Intelligence Platform - Backend App

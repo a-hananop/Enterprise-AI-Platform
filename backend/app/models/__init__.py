@@ -1,5 +1,5 @@
 """
-All database models for the Enterprise AI Platform
+All database models for the Nexus AI Platform
 """
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, Text, ForeignKey, JSON, Enum
 from sqlalchemy.orm import relationship

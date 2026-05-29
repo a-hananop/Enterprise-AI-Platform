@@ -151,8 +151,8 @@ export default function SignupPage() {
             <Zap size={18} color="#fff" />
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>Enterprise AI</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Decision Intelligence Platform</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>Nexus AI</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Intelligence Platform</div>
           </div>
         </div>
 
