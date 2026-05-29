@@ -114,14 +114,15 @@ export default function Dashboard() {
               {stats.map(({ label, value, icon: Icon, color, bg, change, up }, i) => (
                 <div key={label}
                   style={{
-                    background: 'var(--glass-bg)',
+                    // Solid background on mobile to prevent Mali rgba() fragment shader corruption
+                    background: '#0e101a',
                     border: '1px solid var(--glass-border)',
                     borderRadius: 16,
                     padding: '16px 14px',
                     position: 'relative',
-                    // Removed overflow: hidden here as well to prevent clip mask bugs
                   }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${color}, transparent)` }} />
+                  {/* Solid color top bar instead of linear-gradient to prevent further Mali GPU gradient masking bugs */}
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: color }} />
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
                     <Icon size={16} color={color} />
                   </div>
@@ -149,7 +150,11 @@ export default function Dashboard() {
               {quickActions.map(({ label, icon: Icon, path, color, bg }, i) => (
                 <button key={label}
                   onClick={() => navigate(path)}
-                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 14, padding: '14px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  style={{ 
+                    // Solid background
+                    background: '#0e101a', 
+                    border: '1px solid var(--glass-border)', borderRadius: 14, padding: '14px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer' 
+                  }}>
                   <div style={{ width: 38, height: 38, borderRadius: 11, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={17} color={color} />
                   </div>
