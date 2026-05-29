@@ -7,7 +7,7 @@ import {
   ChevronRight, Zap, Activity
 } from 'lucide-react'
 import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { analyticsAPI } from '../../services/api'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 
@@ -52,6 +52,14 @@ export default function AppLayout() {
   const location = useLocation()
 
   const [width, setWidth] = useState(window.innerWidth)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const notifRef = useRef<HTMLDivElement>(null)
+
+  const mockNotifications = [
+    { id: 1, title: 'Model Training Complete', desc: 'Customer Churn Predictor v2 finished training with 94% accuracy.', time: '2m ago', type: 'success' },
+    { id: 2, title: 'New Data Source', desc: 'Sales_Q3_2023.csv was successfully processed and indexed.', time: '1h ago', type: 'info' },
+    { id: 3, title: 'System Alert', desc: 'High latency detected in the prediction API. Auto-scaling initiated.', time: '3h ago', type: 'warning' },
+  ]
 
   useEffect(() => {
     const handleResize = () => setWidth(window.innerWidth)
@@ -74,6 +82,17 @@ export default function AppLayout() {
       setSidebarOpen(false)
     }
   }, [isMobile, location.pathname, setSidebarOpen])
+
+  // Close notifications on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifications(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-base)', position: 'relative' }}>
@@ -263,6 +282,16 @@ export default function AppLayout() {
             <button className="btn-ghost" onClick={toggleSidebar} style={{ padding: '7px 9px' }}>
               <Menu size={16} />
             </button>
+            
+            {isMobile && !sidebarOpen && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => navigate('/')}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: 'linear-gradient(135deg, #4f8bff, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Zap size={12} color="#fff" />
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>Nexus AI</div>
+              </motion.div>
+            )}
+
             {!isMobile && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success)', display: 'inline-block', animation: 'pulse-dot 2s infinite' }} />
@@ -272,11 +301,12 @@ export default function AppLayout() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-            {!isCompactMobile && (
+            
+            <div style={{ position: 'relative' }} ref={notifRef}>
               <button
                 className="btn-ghost"
-                onClick={() => navigate('/analytics')}
-                style={{ padding: '7px 10px', position: 'relative', flexShrink: 0 }}
+                onClick={() => setShowNotifications(!showNotifications)}
+                style={{ padding: '7px 10px', position: 'relative', flexShrink: 0, background: showNotifications ? 'var(--glass-hover)' : 'transparent' }}
               >
                 <Bell size={16} />
                 <AnimatePresence>
@@ -298,7 +328,50 @@ export default function AppLayout() {
                   )}
                 </AnimatePresence>
               </button>
-            )}
+
+              <AnimatePresence>
+                {showNotifications && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    style={{
+                      position: 'absolute', top: 44, right: isMobile ? -50 : 0,
+                      width: isMobile ? 300 : 340, background: 'var(--bg-elevated)',
+                      border: '1px solid var(--glass-border)', borderRadius: 12,
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 200,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
+                      <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-primary)' }}>Notifications</div>
+                      {unreadAlerts > 0 && (
+                        <button className="btn-ghost" style={{ fontSize: 11, padding: '4px 8px', color: 'var(--accent)' }} onClick={() => setUnreadAlerts(0)}>Mark all read</button>
+                      )}
+                    </div>
+                    <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+                      {mockNotifications.map((n, i) => (
+                        <div key={n.id} style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.03)', display: 'flex', gap: 14, cursor: 'pointer', background: (unreadAlerts > 0 && i === 0) ? 'rgba(79,139,255,0.04)' : 'transparent', transition: 'background 0.2s' }} 
+                             onMouseEnter={e => e.currentTarget.style.background = 'var(--glass-hover)'}
+                             onMouseLeave={e => e.currentTarget.style.background = (unreadAlerts > 0 && i === 0) ? 'rgba(79,139,255,0.04)' : 'transparent'}
+                             onClick={() => setShowNotifications(false)}>
+                           <div style={{ width: 8, height: 8, borderRadius: '50%', background: n.type === 'success' ? '#22d3a5' : n.type === 'warning' ? '#f5a623' : '#4f8bff', marginTop: 5, flexShrink: 0, boxShadow: `0 0 10px ${n.type === 'success' ? '#22d3a5' : n.type === 'warning' ? '#f5a623' : '#4f8bff'}` }} />
+                           <div>
+                             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>{n.title}</div>
+                             <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4, marginBottom: 6 }}>{n.desc}</div>
+                             <div style={{ fontSize: 10.5, color: 'var(--text-dim)' }}>{n.time}</div>
+                           </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ padding: '12px', textAlign: 'center', borderTop: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.01)' }}>
+                      <span style={{ fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: 500 }} onClick={() => { setShowNotifications(false); navigate('/analytics') }}>View all alerts</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             <div style={{
               display: 'flex', alignItems: 'center', gap: 8,
