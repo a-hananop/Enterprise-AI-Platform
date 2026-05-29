@@ -89,8 +89,11 @@ def list_sources(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """List all data sources"""
-    q = db.query(DataSource).filter(DataSource.owner_id == current_user.id)
+    """List all data sources (admin/manager see all, others see their own)"""
+    if current_user.role in ["admin", "manager"]:
+        q = db.query(DataSource)
+    else:
+        q = db.query(DataSource).filter(DataSource.owner_id == current_user.id)
     if source_type:
         q = q.filter(DataSource.source_type == source_type)
     sources = q.order_by(DataSource.created_at.desc()).offset(skip).limit(limit).all()
@@ -242,13 +245,23 @@ async def _index_document(ds_id: str, file_path: str, source_type: str, db_sessi
         source_str = source_type.value if hasattr(source_type, 'value') else str(source_type)
         if source_str.startswith("DataSourceType."):
             source_str = source_str.replace("DataSourceType.", "")
-            
-        chunks = await rag.index_document(file_path, source_str, ds_id)
+
+        # Resolve absolute path in case a relative path was stored
+        abs_file_path = file_path
+        if not os.path.isabs(file_path):
+            abs_file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), file_path)
+
+        if not os.path.exists(abs_file_path):
+            print(f"RAG indexing error: file not found at {abs_file_path}")
+            return
+
+        chunks = await rag.index_document(abs_file_path, source_str, ds_id)
         ds = db.query(DataSource).filter(DataSource.id == ds_id).first()
         if ds:
-            ds.is_indexed = True
+            ds.is_indexed = len(chunks) > 0
             ds.vector_ids = chunks
             db.commit()
+            print(f"RAG indexed {len(chunks)} chunks for doc {ds_id}")
     except Exception as e:
         print(f"RAG indexing error: {e}")
     finally:
