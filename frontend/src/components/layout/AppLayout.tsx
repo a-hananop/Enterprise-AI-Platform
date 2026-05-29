@@ -443,24 +443,18 @@ export default function AppLayout() {
           </div>
         </header>
 
-        {/* Page — opacity-only transitions (no y-transforms to avoid WebGL GPU layer conflicts) */}
-        <AnimatePresence mode="wait">
-          <motion.main
-            key={location.pathname}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: isMobile ? 0 : 0.18 }}
-            style={{ 
-              flex: 1, 
-              overflowY: 'auto', 
-              overflowX: 'hidden',
-              backgroundColor: 'var(--bg-base)'
-            }}
-          >
-            <Outlet />
-          </motion.main>
-        </AnimatePresence>
+        {/* Page — No Framer Motion wrapper to ensure WebGL canvas renders perfectly without GPU layer conflicts */}
+        <main
+          key={location.pathname}
+          style={{ 
+            flex: 1, 
+            overflowY: 'auto', 
+            overflowX: 'hidden',
+            backgroundColor: 'var(--bg-base)'
+          }}
+        >
+          <Outlet />
+        </main>
       </div>
     </div>
   )

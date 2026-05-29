@@ -6,9 +6,7 @@ import { HardDrive, MessageCircle, TrendingUp, BarChart2, ArrowUpRight, ArrowDow
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { useSpring, animated } from '@react-spring/web'
 import { motion } from 'framer-motion'
-import AIBrainMobile from '../components/3d/AIBrainMobile'
 
-// WebGL brain — desktop only
 const AIBrain = lazy(() => import('../components/3d/AIBrain'))
 
 
@@ -98,8 +96,18 @@ export default function Dashboard() {
                 Here's your platform overview.
               </p>
             </div>
-            {/* Canvas 2D brain on mobile — pixel-faithful replica, zero GPU conflicts */}
-            <AIBrainMobile size={110} />
+            {/* Real 3D WebGL AIBrain on mobile as requested by user. */}
+            <div style={{ width: 110, height: 110, flexShrink: 0 }}>
+              <Suspense fallback={
+                <div style={{
+                  width: 110, height: 110, borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(79,139,255,0.2), rgba(167,139,250,0.1))',
+                  border: '1.5px solid rgba(167,139,250,0.3)',
+                }} />
+              }>
+                <AIBrain />
+              </Suspense>
+            </div>
           </div>
         </div>
 
