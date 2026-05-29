@@ -233,11 +233,17 @@ def _ds_dict(ds: DataSource) -> dict:
     }
 
 
-async def _index_document(ds_id: str, file_path: str, source_type: str, db):
+async def _index_document(ds_id: str, file_path: str, source_type: str, db_session_factory=None):
     """Background task: index document for RAG"""
     try:
+        from app.database import SessionLocal
+        db = SessionLocal()
         rag = RAGService()
-        chunks = await rag.index_document(file_path, str(source_type), ds_id)
+        source_str = source_type.value if hasattr(source_type, 'value') else str(source_type)
+        if source_str.startswith("DataSourceType."):
+            source_str = source_str.replace("DataSourceType.", "")
+            
+        chunks = await rag.index_document(file_path, source_str, ds_id)
         ds = db.query(DataSource).filter(DataSource.id == ds_id).first()
         if ds:
             ds.is_indexed = True
@@ -245,3 +251,6 @@ async def _index_document(ds_id: str, file_path: str, source_type: str, db):
             db.commit()
     except Exception as e:
         print(f"RAG indexing error: {e}")
+    finally:
+        if 'db' in locals():
+            db.close()
