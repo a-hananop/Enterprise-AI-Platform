@@ -77,12 +77,16 @@ export default function Dashboard() {
           padding: '24px 20px 20px',
           position: 'relative',
           overflow: 'hidden',
+          // Force dedicated compositor layer to fix Mali GPU scroll smearing
+          transform: 'translateZ(0)',
+          WebkitBackfaceVisibility: 'hidden',
+          willChange: 'transform',
         }}>
-          {/* Background glow blobs — radial-gradient only, NO filter:blur (blur creates GPU compositor layers) */}
-          <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(79,139,255,0.18), transparent 70%)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', bottom: -30, left: -20, width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,139,250,0.15), transparent 70%)', pointerEvents: 'none' }} />
+          {/* Background glow blobs */}
+          <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(79,139,255,0.18), transparent 70%)', pointerEvents: 'none', transform: 'translateZ(0)' }} />
+          <div style={{ position: 'absolute', bottom: -30, left: -20, width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,139,250,0.15), transparent 70%)', pointerEvents: 'none', transform: 'translateZ(0)' }} />
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
