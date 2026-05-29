@@ -123,8 +123,7 @@ export default function AppLayout() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(5, 7, 16, 0.4)',
-            backdropFilter: 'blur(6px)',
+            background: 'rgba(5, 7, 16, 0.75)',
             zIndex: 140,
             transition: 'opacity 0.25s ease',
           }}
@@ -144,8 +143,8 @@ export default function AppLayout() {
         display: 'flex',
         flexDirection: 'column',
         borderRight: '1px solid var(--glass-border)',
-        background: 'rgba(12,14,26,0.98)',
-        backdropFilter: 'blur(20px)',
+        background: isMobile ? 'rgba(12,14,26,1)' : 'rgba(12,14,26,0.98)',
+        backdropFilter: isMobile ? 'none' : 'blur(20px)',
         transition: 'width 0.25s ease, left 0.25s ease',
         overflow: 'hidden',
       }}>
@@ -293,8 +292,8 @@ export default function AppLayout() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: isMobile ? '0 12px' : '0 24px',
           borderBottom: '1px solid var(--glass-border)',
-          background: 'rgba(12,14,26,0.7)',
-          backdropFilter: 'blur(20px)',
+          background: isMobile ? 'rgba(12,14,26,1)' : 'rgba(12,14,26,0.7)',
+          backdropFilter: isMobile ? 'none' : 'blur(20px)',
           position: 'relative',
           zIndex: 100,
         }}>
@@ -359,8 +358,8 @@ export default function AppLayout() {
                     style={{
                       position: 'absolute', top: 44, right: isMobile ? -50 : 0,
                       width: isMobile ? 300 : 340, 
-                      background: 'rgba(16, 18, 32, 0.98)',
-                      backdropFilter: 'blur(20px)',
+                      background: isMobile ? 'rgba(16, 18, 32, 1)' : 'rgba(16, 18, 32, 0.98)',
+                      backdropFilter: isMobile ? 'none' : 'blur(20px)',
                       border: '1px solid var(--glass-border)', borderRadius: 12,
                       boxShadow: '0 10px 40px rgba(0,0,0,0.8)', zIndex: 200,
                       overflow: 'hidden'
