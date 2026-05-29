@@ -164,14 +164,14 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── Platform Activity Chart — opacity-only, chart animation disabled on mobile ── */}
-          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35, duration: 0.4 }}>
+          {/* ── Platform Activity Chart ── */}
+          <div className="card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)' }}>Platform Activity</div>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>AI requests over 7 months</div>
               </div>
-              <span style={{ fontSize: 11, background: 'rgba(34,211,165,0.12)', color: '#22d3a5', border: '1px solid rgba(34,211,165,0.2)', borderRadius: 20, padding: '3px 10px', fontWeight: 600 }}>↑ 18.2%</span>
+              <span style={{ fontSize: 11, background: '#162a21', color: '#22d3a5', border: '1px solid rgba(34,211,165,0.2)', borderRadius: 20, padding: '3px 10px', fontWeight: 600 }}>↑ 18.2%</span>
             </div>
             <ResponsiveContainer width="100%" height={130}>
               <AreaChart data={sparkData}>
@@ -186,10 +186,10 @@ export default function Dashboard() {
                 <Area type="monotone" dataKey="v" stroke="#4f8bff" strokeWidth={2.5} fill="url(#aGradM)" dot={false} isAnimationActive={false} />
               </AreaChart>
             </ResponsiveContainer>
-          </motion.div>
+          </div>
 
-          {/* ── Weekly Usage Bar Chart — opacity-only ── */}
-          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42, duration: 0.4 }}>
+          {/* ── Weekly Usage Bar Chart ── */}
+          <div className="card" style={{ padding: 18 }}>
             <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Weekly Usage</div>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 14 }}>Requests per day</div>
             <ResponsiveContainer width="100%" height={110}>
@@ -199,10 +199,10 @@ export default function Dashboard() {
                 <Bar dataKey="v" fill="#a78bfa" radius={[5, 5, 0, 0]} opacity={0.85} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
-          </motion.div>
+          </div>
 
-          {/* ── Key Metrics — opacity-only ── */}
-          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.48, duration: 0.4 }}>
+          {/* ── Key Metrics ── */}
+          <div className="card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Activity size={14} color="var(--accent)" /> Key Metrics
@@ -211,7 +211,7 @@ export default function Dashboard() {
             </div>
             {kpis.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(79,139,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#1a2235', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
                   <Activity size={20} color="var(--accent)" />
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>No metrics yet</div>
@@ -242,10 +242,10 @@ export default function Dashboard() {
                 ))}
               </div>
             )}
-          </motion.div>
+          </div>
 
-          {/* ── Recent Data — opacity-only ── */}
-          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.54, duration: 0.4 }}>
+          {/* ── Recent Data ── */}
+          <div className="card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Clock size={14} color="var(--accent)" /> Recent Data
@@ -254,7 +254,7 @@ export default function Dashboard() {
             </div>
             {recent.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(79,139,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#1a2235', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
                   <HardDrive size={20} color="var(--accent)" />
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>No data uploaded</div>
@@ -267,8 +267,8 @@ export default function Dashboard() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {recent.map((s: any) => (
                   <div key={s.id} onClick={() => navigate('/data')}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 12, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', cursor: 'pointer' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(79,139,255,0.1)', border: '1px solid rgba(79,139,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', flexShrink: 0 }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 12, background: '#131525', border: '1px solid var(--glass-border)', cursor: 'pointer' }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: '#1a2235', border: '1px solid rgba(79,139,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', flexShrink: 0 }}>
                       {s.type?.slice(0, 3)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -280,7 +280,7 @@ export default function Dashboard() {
                 ))}
               </div>
             )}
-          </motion.div>
+          </div>
 
         </div>
       </div>

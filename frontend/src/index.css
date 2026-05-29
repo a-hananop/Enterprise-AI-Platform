@@ -137,11 +137,19 @@
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
   }
 
-  /* Disable backdrop-filter on mobile to prevent GPU smearing */
-  @media (max-width: 1024px) {
+  /* Disable all glass effects on mobile to prevent Mali GPU compositor crashes */
+  @media (max-width: 1023px) {
     .card, .card-hover {
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
+      /* CRITICAL: Replace rgba semi-transparent bg with solid color.
+         Mali GPU cannot composite rgba backgrounds inside a scroll container
+         without smearing / TV static corruption. */
+      background: #0e101a !important;
+    }
+    .card-hover:hover {
+      background: #141728 !important;
+      transform: none !important; /* No translateY on mobile - triggers compositor layer */
     }
   }
 
