@@ -6,7 +6,6 @@ import { HardDrive, MessageCircle, TrendingUp, BarChart2, ArrowUpRight, ArrowDow
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { useSpring, animated } from '@react-spring/web'
 import { motion } from 'framer-motion'
-import AIBrainMobile from '../components/3d/AIBrainMobile'
 
 const AIBrain = lazy(() => import('../components/3d/AIBrain'))
 
@@ -68,7 +67,7 @@ export default function Dashboard() {
   /* ─── MOBILE LAYOUT ─── */
   if (isMobile) {
     return (
-      <div style={{ padding: '0 0 100px 0', overflowX: 'hidden', minHeight: '100vh', background: 'var(--bg-base)' }}>
+      <div style={{ padding: '0 0 100px 0', minHeight: '100vh', background: 'var(--bg-base)' }}>
 
         {/* ── Hero Banner ── */}
         <div style={{
@@ -76,10 +75,11 @@ export default function Dashboard() {
           borderBottom: '1px solid var(--glass-border)',
           padding: '24px 20px 20px',
           position: 'relative',
-          overflow: 'hidden',
-          // Completely removed all translateZ/willChange to prevent Mali GPU texture corruption
+          // CRITICAL FIX: Removed overflow: hidden. Overflow hidden on mobile + WebGL causes Mali GPU clip mask corruption (TV static / smearing)
         }}>
-          {/* Background blobs completely removed on mobile to prevent GPU overdraw crash */}
+          {/* Background glow blobs restored */}
+          <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(79,139,255,0.18), transparent 70%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: -30, left: -20, width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,139,250,0.15), transparent 70%)', pointerEvents: 'none' }} />
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
             <div style={{ flex: 1 }}>
@@ -88,8 +88,8 @@ export default function Dashboard() {
               </div>
               <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: 4 }}>
                 {greeting},<br />
-                {/* Fallback to solid color for mobile to prevent WebkitBackgroundClip text texture bleeding */}
-                <span style={{ color: '#4f8bff' }}>
+                {/* Restored gradient text */}
+                <span style={{ background: 'linear-gradient(90deg,#4f8bff,#a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   {user?.full_name?.split(' ')[0] || user?.username}
                 </span>
               </h1>
@@ -97,11 +97,12 @@ export default function Dashboard() {
                 Here's your platform overview.
               </p>
             </div>
-            {/* 
-              Canvas 2D fallback: absolutely safe on all GPUs.
-              CSS 3D (preserve-3d) and WebGL both trigger compositor crashes on this device.
-            */}
-            <AIBrainMobile />
+            {/* Restored real WebGL 3D Brain */}
+            <div style={{ width: 110, height: 110, flexShrink: 0 }}>
+              <Suspense fallback={null}>
+                <AIBrain />
+              </Suspense>
+            </div>
           </div>
         </div>
 
@@ -119,9 +120,9 @@ export default function Dashboard() {
                     borderRadius: 16,
                     padding: '16px 14px',
                     position: 'relative',
-                    overflow: 'hidden',
+                    // Removed overflow: hidden here as well to prevent clip mask bugs
                   }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${color}, transparent)`, borderRadius: '16px 16px 0 0' }} />
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${color}, transparent)` }} />
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
                     <Icon size={16} color={color} />
                   </div>
