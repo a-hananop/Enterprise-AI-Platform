@@ -6,6 +6,7 @@ import { HardDrive, MessageCircle, TrendingUp, BarChart2, ArrowUpRight, ArrowDow
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { useSpring, animated } from '@react-spring/web'
 import { motion } from 'framer-motion'
+import AIBrainCSS from '../components/3d/AIBrainCSS'
 
 const AIBrain = lazy(() => import('../components/3d/AIBrain'))
 
@@ -96,18 +97,12 @@ export default function Dashboard() {
                 Here's your platform overview.
               </p>
             </div>
-            {/* Real 3D WebGL AIBrain on mobile as requested by user. */}
-            <div style={{ width: 110, height: 110, flexShrink: 0 }}>
-              <Suspense fallback={
-                <div style={{
-                  width: 110, height: 110, borderRadius: '50%',
-                  background: 'radial-gradient(circle, rgba(79,139,255,0.2), rgba(167,139,250,0.1))',
-                  border: '1.5px solid rgba(167,139,250,0.3)',
-                }} />
-              }>
-                <AIBrain />
-              </Suspense>
-            </div>
+            {/* 
+              Ultimate Mobile Fix: Pure CSS AIBrain. 
+              WebGL is fundamentally bugged on Samsung Galaxy A05 (Mali GPU) when 
+              overlaid on gradients. Pure CSS animations are guaranteed to never smear. 
+            */}
+            <AIBrainCSS size={110} />
           </div>
         </div>
 
