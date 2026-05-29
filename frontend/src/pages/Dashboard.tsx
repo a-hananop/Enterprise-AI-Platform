@@ -6,7 +6,9 @@ import { HardDrive, MessageCircle, TrendingUp, BarChart2, ArrowUpRight, ArrowDow
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { useSpring, animated } from '@react-spring/web'
 import { motion } from 'framer-motion'
+import AIBrainCSS from '../components/3d/AIBrainCSS'
 
+// WebGL AIBrain only on desktop — mobile uses AIBrainCSS to avoid GPU conflicts
 const AIBrain = lazy(() => import('../components/3d/AIBrain'))
 
 const sparkData = [
@@ -69,16 +71,14 @@ export default function Dashboard() {
       <div style={{ padding: '0 0 100px 0', overflowX: 'hidden', minHeight: '100vh', background: 'var(--bg-base)' }}>
 
         {/* ── Hero Banner ── */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-          style={{
-            background: 'linear-gradient(135deg, rgba(79,139,255,0.18) 0%, rgba(167,139,250,0.18) 100%)',
-            borderBottom: '1px solid var(--glass-border)',
-            padding: '24px 20px 20px',
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-          {/* Background glow blobs */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(79,139,255,0.18) 0%, rgba(167,139,250,0.18) 100%)',
+          borderBottom: '1px solid var(--glass-border)',
+          padding: '24px 20px 20px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          {/* Background glow blobs — plain divs, no animation, no GPU layer */}
           <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(79,139,255,0.12)', filter: 'blur(40px)', pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', bottom: -30, left: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(167,139,250,0.12)', filter: 'blur(30px)', pointerEvents: 'none' }} />
 
@@ -97,21 +97,38 @@ export default function Dashboard() {
                 Here's your platform overview.
               </p>
             </div>
-            <div style={{ width: 100, height: 100, flexShrink: 0 }}>
-              <Suspense fallback={null}><AIBrain /></Suspense>
+            {/*
+              Real WebGL AIBrain — isolated in its own GPU stacking context.
+              isolation:isolate + contain:layout style paint prevents the WebGL
+              compositor layer from bleeding into the page's compositing layers.
+              No transform/will-change on wrapper = no competing GPU layers.
+            */}
+            <div style={{
+              width: 110, height: 110, flexShrink: 0,
+              isolation: 'isolate',
+              contain: 'layout style paint',
+            }}>
+              <Suspense fallback={
+                <div style={{
+                  width: 110, height: 110, borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(79,139,255,0.2), rgba(167,139,250,0.1))',
+                  border: '1.5px solid rgba(167,139,250,0.3)',
+                }} />
+              }>
+                <AIBrain />
+              </Suspense>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-          {/* ── Stat Cards 2x2 Grid ── */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          {/* ── Stat Cards 2x2 Grid — opacity-only fades, NO y/scale transforms ── */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1, duration: 0.4 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {stats.map(({ label, value, icon: Icon, color, bg, change, up }, i) => (
                 <motion.div key={label}
-                  initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 + i * 0.07 }}
-                  whileTap={{ scale: 0.96 }}
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 + i * 0.07, duration: 0.35 }}
                   style={{
                     background: 'var(--glass-bg)',
                     border: '1px solid var(--glass-border)',
@@ -120,9 +137,7 @@ export default function Dashboard() {
                     position: 'relative',
                     overflow: 'hidden',
                   }}>
-                  {/* Subtle top accent line */}
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${color}, transparent)`, borderRadius: '16px 16px 0 0' }} />
-
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
                     <Icon size={16} color={color} />
                   </div>
@@ -141,8 +156,8 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          {/* ── Quick Actions Horizontal Scroll ── */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+          {/* ── Quick Actions — opacity-only ── */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25, duration: 0.4 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Zap size={14} color="var(--accent)" /> Quick Actions
             </div>
@@ -150,8 +165,7 @@ export default function Dashboard() {
               {quickActions.map(({ label, icon: Icon, path, color, bg }, i) => (
                 <motion.button key={label}
                   onClick={() => navigate(path)}
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.06 }}
-                  whileTap={{ scale: 0.93 }}
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 + i * 0.06, duration: 0.3 }}
                   style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 14, padding: '14px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                   <div style={{ width: 38, height: 38, borderRadius: 11, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={17} color={color} />
@@ -162,8 +176,8 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          {/* ── Platform Activity Chart ── */}
-          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+          {/* ── Platform Activity Chart — opacity-only, chart animation disabled on mobile ── */}
+          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35, duration: 0.4 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)' }}>Platform Activity</div>
@@ -181,26 +195,26 @@ export default function Dashboard() {
                 </defs>
                 <XAxis dataKey="m" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <Tooltip {...TIP} />
-                <Area type="monotone" dataKey="v" stroke="#4f8bff" strokeWidth={2.5} fill="url(#aGradM)" dot={false} isAnimationActive animationDuration={1200} />
+                <Area type="monotone" dataKey="v" stroke="#4f8bff" strokeWidth={2.5} fill="url(#aGradM)" dot={false} isAnimationActive={false} />
               </AreaChart>
             </ResponsiveContainer>
           </motion.div>
 
-          {/* ── Weekly Usage Bar Chart ── */}
-          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42 }}>
+          {/* ── Weekly Usage Bar Chart — opacity-only ── */}
+          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42, duration: 0.4 }}>
             <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Weekly Usage</div>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 14 }}>Requests per day</div>
             <ResponsiveContainer width="100%" height={110}>
               <BarChart data={barData} barSize={16}>
                 <XAxis dataKey="d" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <Tooltip {...TIP} />
-                <Bar dataKey="v" fill="#a78bfa" radius={[5, 5, 0, 0]} opacity={0.85} isAnimationActive animationDuration={900} />
+                <Bar dataKey="v" fill="#a78bfa" radius={[5, 5, 0, 0]} opacity={0.85} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           </motion.div>
 
-          {/* ── Key Metrics ── */}
-          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.48 }}>
+          {/* ── Key Metrics — opacity-only ── */}
+          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.48, duration: 0.4 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Activity size={14} color="var(--accent)" /> Key Metrics
@@ -242,8 +256,8 @@ export default function Dashboard() {
             )}
           </motion.div>
 
-          {/* ── Recent Data ── */}
-          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.54 }}>
+          {/* ── Recent Data — opacity-only ── */}
+          <motion.div className="card" style={{ padding: 18 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.54, duration: 0.4 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Clock size={14} color="var(--accent)" /> Recent Data
@@ -263,10 +277,9 @@ export default function Dashboard() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {recent.map((s: any, i: number) => (
-                  <motion.div key={s.id} onClick={() => navigate('/data')}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 12, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', cursor: 'pointer' }}
-                    whileTap={{ scale: 0.98 }}>
+                {recent.map((s: any) => (
+                  <div key={s.id} onClick={() => navigate('/data')}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 12, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', cursor: 'pointer' }}>
                     <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(79,139,255,0.1)', border: '1px solid rgba(79,139,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', flexShrink: 0 }}>
                       {s.type?.slice(0, 3)}
                     </div>
@@ -275,7 +288,7 @@ export default function Dashboard() {
                       <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{s.created_at ? new Date(s.created_at).toLocaleDateString() : ''}</div>
                     </div>
                     <ChevronRight size={14} color="var(--text-dim)" />
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             )}
