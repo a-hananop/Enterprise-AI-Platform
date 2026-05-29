@@ -51,17 +51,17 @@ export default function Dashboard() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   const stats = [
-    { label: 'Data Sources',     value: ov.total_data_sources  || 0, icon: HardDrive,     color: '#4f8bff', bg: 'rgba(79,139,255,0.12)',  change: '+2', up: true  },
-    { label: 'AI Chats',         value: ov.total_chat_sessions || 0, icon: MessageCircle, color: '#22d3a5', bg: 'rgba(34,211,165,0.12)',  change: '+5', up: true  },
-    { label: 'ML Models',        value: ov.total_ml_models     || 0, icon: TrendingUp,    color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', change: '0',  up: true  },
-    { label: 'Alerts',           value: ov.unread_alerts        || 0, icon: Bell,          color: '#f5a623', bg: 'rgba(245,166,35,0.12)',  change: '',   up: false },
+    { label: 'Data Sources',     value: ov.total_data_sources  || 0, icon: HardDrive,     color: '#4f8bff', bg: '#162040',  change: '+2', up: true  },
+    { label: 'AI Chats',         value: ov.total_chat_sessions || 0, icon: MessageCircle, color: '#22d3a5', bg: '#122a25',  change: '+5', up: true  },
+    { label: 'ML Models',        value: ov.total_ml_models     || 0, icon: TrendingUp,    color: '#a78bfa', bg: '#1e1a35',  change: '0',  up: true  },
+    { label: 'Alerts',           value: ov.unread_alerts        || 0, icon: Bell,          color: '#f5a623', bg: '#2a1e0e',  change: '',   up: false },
   ]
 
   const quickActions = [
-    { label: 'Upload Data',    icon: HardDrive,     path: '/data',      color: '#4f8bff', bg: 'rgba(79,139,255,0.15)'  },
-    { label: 'Chat with AI',   icon: MessageCircle, path: '/assistant', color: '#22d3a5', bg: 'rgba(34,211,165,0.15)'  },
-    { label: 'Run Prediction', icon: TrendingUp,    path: '/predict',   color: '#a78bfa', bg: 'rgba(167,139,250,0.15)' },
-    { label: 'Analytics',      icon: BarChart2,     path: '/analytics', color: '#f5a623', bg: 'rgba(245,166,35,0.15)'  },
+    { label: 'Upload Data',    icon: HardDrive,     path: '/data',      color: '#4f8bff', bg: '#162040'  },
+    { label: 'Chat with AI',   icon: MessageCircle, path: '/assistant', color: '#22d3a5', bg: '#122a25'  },
+    { label: 'Run Prediction', icon: TrendingUp,    path: '/predict',   color: '#a78bfa', bg: '#1e1a35'  },
+    { label: 'Analytics',      icon: BarChart2,     path: '/analytics', color: '#f5a623', bg: '#2a1e0e'  },
   ]
 
   /* ─── MOBILE LAYOUT ─── */
