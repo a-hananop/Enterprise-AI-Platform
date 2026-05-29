@@ -452,7 +452,14 @@ export default function AppLayout() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-            style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}
+            style={{ 
+              flex: 1, 
+              overflowY: 'auto', 
+              overflowX: 'hidden',
+              transform: 'translateZ(0)', // Force GPU layer to prevent mobile tearing
+              WebkitTransform: 'translateZ(0)',
+              backgroundColor: 'var(--bg-base)'
+            }}
           >
             <Outlet />
           </motion.main>
