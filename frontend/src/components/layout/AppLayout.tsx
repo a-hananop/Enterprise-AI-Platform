@@ -4,7 +4,7 @@ import {
   LayoutDashboard, HardDrive, MessageCircle, TrendingUp,
   AlignLeft, Cpu, BarChart2, FileSearch, Megaphone,
   ShieldAlert, FileText, Settings, Bell, Menu, LogOut,
-  ChevronRight, Zap, Activity
+  ChevronRight, Zap, Activity, X
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useEffect, useState, useRef } from 'react'
@@ -55,11 +55,31 @@ export default function AppLayout() {
   const [showNotifications, setShowNotifications] = useState(false)
   const notifRef = useRef<HTMLDivElement>(null)
 
-  const mockNotifications = [
-    { id: 1, title: 'Model Training Complete', desc: 'Customer Churn Predictor v2 finished training with 94% accuracy.', time: '2m ago', type: 'success' },
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Model Training Complete', desc: 'Customer Churn Predictor v2 finished training with 94% accuracy.', time: 'Just now', type: 'success' },
     { id: 2, title: 'New Data Source', desc: 'Sales_Q3_2023.csv was successfully processed and indexed.', time: '1h ago', type: 'info' },
     { id: 3, title: 'System Alert', desc: 'High latency detected in the prediction API. Auto-scaling initiated.', time: '3h ago', type: 'warning' },
-  ]
+  ])
+
+  // Sync global unread count with local state
+  useEffect(() => {
+    setUnreadAlerts(notifications.length)
+  }, [notifications, setUnreadAlerts])
+
+  // Real-time incoming notification simulation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const types = ['info', 'success', 'warning']
+      const type = types[Math.floor(Math.random() * types.length)]
+      const title = type === 'warning' ? 'Anomaly Detected' : (type === 'success' ? 'Task Completed' : 'Data Sync')
+      const desc = type === 'warning' ? 'Unusual access patterns flagged.' : (type === 'success' ? 'Weekly pipeline finished successfully.' : 'CRM database synced in background.')
+      
+      const newNotif = { id: Date.now(), title, desc, time: 'Just now', type }
+      
+      setNotifications(prev => [newNotif, ...prev].slice(0, 8))
+    }, 35000) // simulated every 35s
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     const handleResize = () => setWidth(window.innerWidth)
@@ -71,9 +91,7 @@ export default function AppLayout() {
   const isCompactMobile = width < 480
 
   useEffect(() => {
-    analyticsAPI.dashboard()
-      .then(r => setUnreadAlerts(r.data?.overview?.unread_alerts || 0))
-      .catch(() => {})
+    analyticsAPI.dashboard().catch(() => {})
   }, [])
 
   // Auto-close the drawer on mobile when the route changes.
@@ -350,24 +368,49 @@ export default function AppLayout() {
                   >
                     <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
                       <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-primary)' }}>Notifications</div>
-                      {unreadAlerts > 0 && (
-                        <button className="btn-ghost" style={{ fontSize: 11, padding: '4px 8px', color: 'var(--accent)' }} onClick={() => setUnreadAlerts(0)}>Mark all read</button>
+                      {notifications.length > 0 && (
+                        <button className="btn-ghost" style={{ fontSize: 11, padding: '4px 8px', color: 'var(--accent)' }} onClick={() => setNotifications([])}>Clear all</button>
                       )}
                     </div>
-                    <div style={{ maxHeight: 320, overflowY: 'auto' }}>
-                      {mockNotifications.map((n, i) => (
-                        <div key={n.id} style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.03)', display: 'flex', gap: 14, cursor: 'pointer', background: (unreadAlerts > 0 && i === 0) ? 'rgba(79,139,255,0.04)' : 'transparent', transition: 'background 0.2s' }} 
-                             onMouseEnter={e => e.currentTarget.style.background = 'var(--glass-hover)'}
-                             onMouseLeave={e => e.currentTarget.style.background = (unreadAlerts > 0 && i === 0) ? 'rgba(79,139,255,0.04)' : 'transparent'}
-                             onClick={() => setShowNotifications(false)}>
-                           <div style={{ width: 8, height: 8, borderRadius: '50%', background: n.type === 'success' ? '#22d3a5' : n.type === 'warning' ? '#f5a623' : '#4f8bff', marginTop: 5, flexShrink: 0, boxShadow: `0 0 10px ${n.type === 'success' ? '#22d3a5' : n.type === 'warning' ? '#f5a623' : '#4f8bff'}` }} />
-                           <div>
-                             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>{n.title}</div>
-                             <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4, marginBottom: 6 }}>{n.desc}</div>
-                             <div style={{ fontSize: 10.5, color: 'var(--text-dim)' }}>{n.time}</div>
-                           </div>
-                        </div>
-                      ))}
+                    <div style={{ maxHeight: 320, overflowY: 'auto', overflowX: 'hidden' }}>
+                      <AnimatePresence initial={false}>
+                        {notifications.length === 0 ? (
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+                            <Bell size={24} style={{ opacity: 0.2, margin: '0 auto 12px' }} />
+                            All caught up!
+                          </motion.div>
+                        ) : notifications.map((n, i) => (
+                          <motion.div 
+                               layout 
+                               key={n.id} 
+                               initial={{ opacity: 0, x: 30 }} 
+                               animate={{ opacity: 1, x: 0 }} 
+                               exit={{ opacity: 0, scale: 0.95, height: 0, padding: 0 }} 
+                               transition={{ duration: 0.2 }}
+                               style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.03)', display: 'flex', gap: 14, background: i === 0 ? 'rgba(79,139,255,0.04)' : 'transparent', transition: 'background 0.2s', position: 'relative' }} 
+                               onMouseEnter={e => e.currentTarget.style.background = 'var(--glass-hover)'}
+                               onMouseLeave={e => e.currentTarget.style.background = i === 0 ? 'rgba(79,139,255,0.04)' : 'transparent'}>
+                             <div style={{ width: 8, height: 8, borderRadius: '50%', background: n.type === 'success' ? '#22d3a5' : n.type === 'warning' ? '#f5a623' : '#4f8bff', marginTop: 5, flexShrink: 0, boxShadow: `0 0 10px ${n.type === 'success' ? '#22d3a5' : n.type === 'warning' ? '#f5a623' : '#4f8bff'}` }} />
+                             <div style={{ flex: 1, minWidth: 0, paddingRight: 20 }}>
+                               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>{n.title}</div>
+                               <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4, marginBottom: 6 }}>{n.desc}</div>
+                               <div style={{ fontSize: 10.5, color: 'var(--text-dim)' }}>{n.time}</div>
+                             </div>
+                             <button 
+                               className="btn-ghost" 
+                               style={{ position: 'absolute', top: 12, right: 12, padding: 4, color: 'var(--text-dim)', opacity: 0.4, transition: 'all 0.15s' }}
+                               onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = 'var(--danger)'; }}
+                               onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; e.currentTarget.style.color = 'var(--text-dim)'; }}
+                               onClick={(e) => {
+                                 e.stopPropagation()
+                                 setNotifications(prev => prev.filter(x => x.id !== n.id))
+                               }}
+                             >
+                               <X size={14} />
+                             </button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
                     </div>
                     <div style={{ padding: '12px', textAlign: 'center', borderTop: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.01)' }}>
                       <span style={{ fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: 500 }} onClick={() => { setShowNotifications(false); navigate('/analytics') }}>View all alerts</span>
