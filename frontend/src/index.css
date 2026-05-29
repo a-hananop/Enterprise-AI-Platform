@@ -112,6 +112,7 @@
     border: 1px solid var(--glass-border);
     border-radius: 14px;
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .card-hover {
@@ -119,6 +120,7 @@
     border: 1px solid var(--glass-border);
     border-radius: 14px;
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     transition: all 0.2s ease;
     cursor: pointer;
   }
@@ -127,6 +129,14 @@
     border-color: rgba(79,139,255,0.22);
     transform: translateY(-1px);
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+
+  /* Disable backdrop-filter on mobile to prevent GPU smearing */
+  @media (max-width: 1024px) {
+    .card, .card-hover {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
   }
 
   /* ── Buttons ── */
